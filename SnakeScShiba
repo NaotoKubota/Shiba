@@ -1,0 +1,77 @@
+'''
+SnakeScShiba: A snakemake-based workflow of scShiba
+
+Usage:
+    snakemake -s SnakeScShiba --configfile config.yaml --cores <int> --use-singularity --singularity-args "--bind $HOME:$HOME"
+'''
+
+workdir: config["workdir"]
+container: config["container"]
+
+rule all:
+    input:
+        PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE"])
+
+rule gtf2event:
+    input:
+        gtf = config["gtf"]
+    output:
+        directory("events")
+    threads:
+        workflow.cores
+    benchmark:
+        "benchmark/gtf2event.txt"
+    log:
+        "log/gtf2event.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/gtf2event.py \
+        -i {input.gtf} \
+        -o {output} \
+        -p {threads} >& {log}
+        """
+
+rule sc2junc:
+    input:
+        config["experiment_table"]
+    output:
+        "junctions/junctions.bed"
+    benchmark:
+        "benchmark/sc2junc.txt"
+    log:
+        "log/sc2junc.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/sc2junc.py \
+        -i {input} \
+        -o {output} >& {log}
+        """
+
+rule scpsi:
+    input:
+        junc = "junctions/junctions.bed",
+        event = "events"
+    output:
+        results = directory("results"),
+        PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE"])
+    threads:
+        1
+    benchmark:
+        "benchmark/scpsi.txt"
+    log:
+        "log/scpsi.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/scpsi_snakemake.py \
+        -p {threads} \
+        -f {config[fdr]} \
+        -d {config[delta_psi]} \
+        -m {config[minimum_reads]} \
+        -r {config[reference_group]} \
+        -a {config[alternative_group]} \
+        --onlypsi {config[only_psi]} \
+        --excel {config[excel]} \
+        {input.junc} \
+        {input.event} \
+        {output.results} >& {log}
+        """

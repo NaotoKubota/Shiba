@@ -1,0 +1,544 @@
+#!/bin/bash -e
+set -o pipefail
+# Prevent commands misbehaving due to locale differences
+export LC_ALL=C
+
+VERSION="v0.1"
+
+
+function usage {
+    cat << EOS
+
+Shiba ${VERSION} -Pipeline for robust identification of differential RNA splicing-
+
+Usage: $(basename "$0") -i experiment.txt -c config.txt
+
+    -h  Display help
+    -v  Show version
+    -i  Experiment table
+    -c  Config file
+
+EOS
+    exit 2
+}
+
+# version
+function version {
+    cat << EOS
+
+Shiba ${VERSION} -Pipeline for robust identification of differential RNA splicing-
+
+EOS
+    exit 2
+}
+
+# path to src
+SRC_PATH=$(dirname "$0")
+
+function lack_of_necessary_param() {
+    usage
+    exit 1
+}
+
+IS_THERE_NECESSARY_OPT_i=false
+IS_THERE_NECESSARY_OPT_c=false
+
+while getopts "i:c:vh" optKey; do
+    case "$optKey" in
+    i)
+        IS_THERE_NECESSARY_OPT_i=true
+        EXPERIMENT_TABLE=${OPTARG}
+        ;;
+    c)
+        IS_THERE_NECESSARY_OPT_c=true
+        CONFIG=${OPTARG}
+        ;;
+    v|version)
+        version
+        ;;
+    h|* )
+        usage
+        ;;
+    esac
+done
+
+
+if [ "${IS_THERE_NECESSARY_OPT_i}" == false ] || [ "${IS_THERE_NECESSARY_OPT_c}" == false ]; then
+    lack_of_necessary_param
+fi;
+
+
+# source config file
+source ${CONFIG}
+
+
+# Make log file
+mkdir -p ${OUTPUT}
+rm -rf ${OUTPUT}/Shiba.log
+touch ${OUTPUT}/Shiba.log
+exec 1> >(tee -a ${OUTPUT}/Shiba.log)
+
+
+cat << "EOF"
+
+ ____    __          __
+/\  _`\ /\ \      __/\ \
+\ \,\L\_\ \ \___ /\_\ \ \____     __
+ \/_\__ \\ \  _ `\/\ \ \ '__`\  /'__`\
+   /\ \L\ \ \ \ \ \ \ \ \ \L\ \/\ \L\.\_
+   \ `\____\ \_\ \_\ \_\ \_,__/\ \__/.\_\
+    \/_____/\/_/\/_/\/_/\/___/  \/__/\/_/
+EOF
+
+
+# Check if the config file exists
+if [ ! -f ${CONFIG} ]; then
+    echo -e "Config file does not exist."
+    exit 1
+fi
+
+# Check if the experiment table exists
+if [ ! -f ${EXPERIMENT_TABLE} ]; then
+    echo -e "Experiment table does not exist."
+    exit 1
+fi
+
+# Check if the NUM_PROCESS variable and OUTPUT variable are set
+if [ -z ${NUM_PROCESS} ]; then
+    echo -e "NUM_PROCESS is not set. Set to 1."
+    NUM_PROCESS=1
+fi
+if [ -z ${OUTPUT} ]; then
+    echo -e "OUTPUT is not set. Plesae set the output directory."
+    exit 1
+fi
+if [ -z ${GTF} ]; then
+    echo -e "GTF is not set. Please specify in the config file."
+    exit 1
+fi
+# Check if the GTF exists
+if [ ! -f ${GTF} ]; then
+    echo -e ""
+    echo -e "${GTF} does not exist."
+    echo -e "Please specify the correct GTF file in the config file."
+    exit 1
+fi
+
+# Check if the variables are set
+if [ -z ${ONLY_PSI} ]; then
+    echo -e "ONLY_PSI is not set. Set to false."
+    ONLY_PSI=false
+fi
+if [ -z ${ONLY_PSI_GROUP} ]; then
+    echo -e "ONLY_PSI_GROUP is not set. Set to false."
+    ONLY_PSI_GROUP=false
+fi
+if [ -z ${UNANNOTATED} ]; then
+    echo -e "UNANNOTATED is not set. Set to true."
+    UNANNOTATED=true
+fi
+
+# execution time
+SECONDS=0
+
+# Get absolute path
+EXPERIMENT_TABLE_ABSPATH=$(cd $(dirname ${EXPERIMENT_TABLE}); pwd)/$(basename ${EXPERIMENT_TABLE})
+CONFIG_ABSPATH=$(cd $(dirname ${CONFIG}); pwd)/$(basename ${CONFIG})
+OUTPUT_ABSPATH=$(cd $(dirname ${OUTPUT}); pwd)/$(basename ${OUTPUT})
+
+# print parameters
+echo -e "
+${VERSION}
+Input:\t${EXPERIMENT_TABLE_ABSPATH}
+Config:\t${CONFIG_ABSPATH}
+CPU:\t${NUM_PROCESS}
+GTF:\t${GTF}
+Output:\t${OUTPUT_ABSPATH}"
+
+if [ ${UNANNOTATED} == true ]; then
+
+    echo -e "\nUnannotated splicing events will be analyzed."
+
+else
+
+    echo -e "\nUnannotated splicing events will not be analyzed."
+
+fi
+
+## Step1: bam2gtf.sh
+echo -e "
+----------------------------
+    Step1: bam2gtf.sh
+----------------------------
+"
+if [ "${SKIP_STEP1}" == false ] && [ "${UNANNOTATED}" == true ]; then
+
+    echo -e "bash ${SRC_PATH}/src/bam2gtf.sh -i ${EXPERIMENT_TABLE_ABSPATH} -r ${GTF} -o ${OUTPUT}/annotation/assembled_annotation.gtf -p ${NUM_PROCESS}"
+    bash ${SRC_PATH}/src/bam2gtf.sh \
+    -i ${EXPERIMENT_TABLE_ABSPATH} \
+    -r ${GTF} \
+    -o ${OUTPUT}/annotation/assembled_annotation.gtf \
+    -p ${NUM_PROCESS}
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_one=${SECONDS}
+sec=$((i_one % 60))
+min=$(((i_one % 3600) / 60))
+hrs=$((i_one / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step1 execution time: ${timestamp}"
+
+## Step2: gtf2event.py
+echo -e "
+----------------------------
+    Step2: gtf2event.py
+----------------------------
+"
+if [ "${SKIP_STEP2}" == false ] && [ "${UNANNOTATED}" == true ]; then
+
+    echo -e "python ${SRC_PATH}/src/gtf2event.py -i ${OUTPUT}/annotation/assembled_annotation.gtf -r ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
+    python ${SRC_PATH}/src/gtf2event.py \
+    -i ${OUTPUT}/annotation/assembled_annotation.gtf \
+    -r ${GTF} \
+    -o ${OUTPUT}/events \
+    -p ${NUM_PROCESS}
+
+elif [ "${SKIP_STEP2}" == false ] && [ "${UNANNOTATED}" == false ]; then
+
+    echo -e "python ${SRC_PATH}/src/gtf2event.py -i ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
+    python ${SRC_PATH}/src/gtf2event.py \
+    -i ${GTF} \
+    -o ${OUTPUT}/events \
+    -p ${NUM_PROCESS}
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_two=$((${SECONDS} - ${i_one}))
+sec=$((i_two % 60))
+min=$(((i_two % 3600) / 60))
+hrs=$((i_two / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step2 execution time: ${timestamp}"
+
+## Step3: bam2junc.sh
+echo -e "
+----------------------------
+     Step3: bam2junc.sh
+----------------------------
+"
+if [ "${SKIP_STEP3}" == false ]; then
+
+    # Check if the variables are set
+    if [ -z ${MINIMUM_ANCHOR_LENGTH} ]; then
+        echo -e "MINIMUM_ANCHOR_LENGTH is not set. Please specify in the config file."
+        exit 1
+    fi
+    if [ -z ${MINIMUM_INTRON_SIZE} ]; then
+        echo -e "MINIMUM_INTRON_SIZE is not set. Please specify in the config file."
+        exit 1
+    fi
+    if [ -z ${MAXIMUM_INTRON_SIZE} ]; then
+        echo -e "MAXIMUM_INTRON_SIZE is not set. Please specify in the config file."
+        exit 1
+    fi
+    if [ -z ${STRAND} ]; then
+        echo -e "STRAND is not set. Please specify in the config file."
+        exit 1
+    fi
+
+    echo -e "bash ${SRC_PATH}/src/bam2junc.sh -i ${EXPERIMENT_TABLE_ABSPATH} -r ${OUTPUT}/events/EVENT_RI.txt -o ${OUTPUT}/junctions/junctions.bed -p ${NUM_PROCESS} -a ${MINIMUM_ANCHOR_LENGTH} -m ${MINIMUM_INTRON_SIZE} -M ${MAXIMUM_INTRON_SIZE} -s ${STRAND}"
+    bash ${SRC_PATH}/src/bam2junc.sh \
+    -i ${EXPERIMENT_TABLE_ABSPATH} \
+    -r ${OUTPUT}/events/EVENT_RI.txt \
+    -o ${OUTPUT}/junctions/junctions.bed \
+    -p ${NUM_PROCESS} \
+    -a ${MINIMUM_ANCHOR_LENGTH} \
+    -m ${MINIMUM_INTRON_SIZE} \
+    -M ${MAXIMUM_INTRON_SIZE} \
+    -s ${STRAND}
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_three=$((${SECONDS} - ${i_two} - ${i_one}))
+sec=$((i_three % 60))
+min=$(((i_three % 3600) / 60))
+hrs=$((i_three / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step3 execution time: ${timestamp}"
+
+## Step4: psi.py
+echo -e "
+----------------------------
+       Step4: psi.py
+----------------------------
+"
+
+if [ "${SKIP_STEP4}" == false ]; then
+
+    if [ "${ONLY_PSI}" == true ]; then
+
+        echo -e "python ${SRC_PATH}/src/psi.py -p 1 --onlypsi -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+        python ${SRC_PATH}/src/psi.py \
+        -p 1 \
+        --onlypsi \
+        -m ${MINIMUM_READS} \
+        ${OUTPUT}/junctions/junctions.bed \
+        ${OUTPUT}/events \
+        ${OUTPUT}/results/splicing
+
+    elif [ "${ONLY_PSI_GROUP}" == true ]; then
+
+        echo -e "python ${SRC_PATH}/src/psi.py -p 1 --onlypsi-group -g ${EXPERIMENT_TABLE_ABSPATH} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+        python ${SRC_PATH}/src/psi.py \
+        -p 1 \
+        --onlypsi-group \
+        -g ${EXPERIMENT_TABLE_ABSPATH} \
+        -m ${MINIMUM_READS} \
+        ${OUTPUT}/junctions/junctions.bed \
+        ${OUTPUT}/events \
+        ${OUTPUT}/results/splicing
+
+    else
+
+        # Check if the variables are set
+        if [ -z ${FDR} ]; then
+            echo -e "FDR is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${DELTA_PSI} ]; then
+            echo -e "DELTA_PSI is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${REFERENCE_GROUP} ]; then
+            echo -e "REFERENCE_GROUP is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${ALTERNATIVE_GROUP} ]; then
+            echo -e "ALTERNATIVE_GROUP is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${MINIMUM_READS} ]; then
+            echo -e "MINIMUM_READS is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${INDIVIDUAL_PSI} ]; then
+            echo -e "INDIVIDUAL_PSI is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${TTEST} ]; then
+            echo -e "TTEST is not set. Please specify in the config file."
+            exit 1
+        fi
+
+        if [ "${INDIVIDUAL_PSI}" == true ]; then
+
+            if [ "${TTEST}" == true ]; then
+
+                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -i -t ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                python ${SRC_PATH}/src/psi.py \
+                -g ${EXPERIMENT_TABLE_ABSPATH} \
+                -p 1 \
+                -r ${REFERENCE_GROUP} \
+                -a ${ALTERNATIVE_GROUP} \
+                -f ${FDR} \
+                -d ${DELTA_PSI} \
+                -m ${MINIMUM_READS} \
+                -i \
+                -t \
+                ${OUTPUT}/junctions/junctions.bed \
+                ${OUTPUT}/events \
+                ${OUTPUT}/results/splicing
+
+
+            else
+
+                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -i ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                python ${SRC_PATH}/src/psi.py \
+                -g ${EXPERIMENT_TABLE_ABSPATH} \
+                -p 1 \
+                -r ${REFERENCE_GROUP} \
+                -a ${ALTERNATIVE_GROUP} \
+                -f ${FDR} \
+                -d ${DELTA_PSI} \
+                -m ${MINIMUM_READS} \
+                -i \
+                ${OUTPUT}/junctions/junctions.bed \
+                ${OUTPUT}/events \
+                ${OUTPUT}/results/splicing
+
+            fi
+
+        else
+
+            if [ "${TTEST}" == true ]; then
+
+                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -t ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                python ${SRC_PATH}/src/psi.py \
+                -g ${EXPERIMENT_TABLE_ABSPATH} \
+                -p 1 \
+                -r ${REFERENCE_GROUP} \
+                -a ${ALTERNATIVE_GROUP} \
+                -f ${FDR} \
+                -d ${DELTA_PSI} \
+                -m ${MINIMUM_READS} \
+                -t \
+                ${OUTPUT}/junctions/junctions.bed \
+                ${OUTPUT}/events \
+                ${OUTPUT}/results/splicing
+
+            else
+
+                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                python ${SRC_PATH}/src/psi.py \
+                -g ${EXPERIMENT_TABLE_ABSPATH} \
+                -p 1 \
+                -r ${REFERENCE_GROUP} \
+                -a ${ALTERNATIVE_GROUP} \
+                -f ${FDR} \
+                -d ${DELTA_PSI} \
+                -m ${MINIMUM_READS} \
+                ${OUTPUT}/junctions/junctions.bed \
+                ${OUTPUT}/events \
+                ${OUTPUT}/results/splicing
+
+            fi
+
+        fi
+
+    fi
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_four=$((${SECONDS} - ${i_three} - ${i_two} - ${i_one}))
+sec=$((i_four % 60))
+min=$(((i_four % 3600) / 60))
+hrs=$((i_four / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step4 execution time: ${timestamp}"
+
+## Step5: plots.py
+echo -e "
+----------------------------
+      Step5: plots.py
+----------------------------
+"
+if [ "${ONLY_PSI}" == false ]; then
+
+    if [ "${SKIP_STEP5}" == false ]; then
+
+        echo -e "python ${SRC_PATH}/src/plots.py ${OUTPUT}/results/splicing ${OUTPUT}/plots"
+        python ${SRC_PATH}/src/plots.py \
+        ${OUTPUT}/results/splicing \
+        ${OUTPUT}/plots
+
+    else
+
+        echo -e "Skipped."
+
+    fi
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_five=$((${SECONDS} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
+sec=$((i_five % 60))
+min=$(((i_five % 3600) / 60))
+hrs=$((i_five / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step5 execution time: ${timestamp}"
+
+## Step6: expression.sh
+echo -e "
+----------------------------
+    Step6: expression.sh
+----------------------------
+"
+if [ "${SKIP_STEP6}" == false ]; then
+
+    # Check if the variables are set
+    if [ -z ${ONLY_PSI} ]; then
+        echo -e "ONLY_PSI is not set. Please specify in the config file."
+        exit 1
+    fi
+
+    if [ "${ONLY_PSI}" == false ]; then
+
+        if [ -z ${REFERENCE_GROUP} ]; then
+            echo -e "REFERENCE_GROUP is not set. Please specify in the config file."
+            exit 1
+        fi
+        if [ -z ${ALTERNATIVE_GROUP} ]; then
+            echo -e "ALTERNATIVE_GROUP is not set. Please specify in the config file."
+            exit 1
+        fi
+
+        echo -e "bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -p ${NUM_PROCESS}"
+        bash ${SRC_PATH}/src/expression.sh \
+        -i ${EXPERIMENT_TABLE_ABSPATH} \
+        -g ${GTF} \
+        -o ${OUTPUT}/results/expression \
+        -r ${REFERENCE_GROUP} \
+        -a ${ALTERNATIVE_GROUP} \
+        -p ${NUM_PROCESS}
+
+    else
+
+        echo -e "bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -p ${NUM_PROCESS}"
+        bash ${SRC_PATH}/src/expression.sh \
+        -i ${EXPERIMENT_TABLE_ABSPATH} \
+        -g ${GTF} \
+        -o ${OUTPUT}/results/expression \
+        -p ${NUM_PROCESS}
+
+    fi
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_six=$((${SECONDS} - ${i_five} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
+sec=$((i_six % 60))
+min=$(((i_six % 3600) / 60))
+hrs=$((i_six / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step6 execution time: ${timestamp}"
+
+i=${SECONDS}
+sec=$((i % 60))
+min=$(((i % 3600) / 60))
+hrs=$((i / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e \
+"
+Finished Shiba!
+Total execution time: ${timestamp}
+"

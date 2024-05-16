@@ -1,0 +1,251 @@
+'''
+SnakeShiba: A snakemake-based workflow of Shiba for splicing quantification for all groups of samples
+
+Usage:
+    snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
+'''
+
+def load_experiment(file):
+    experiment_dict = {}
+    with open(file, "r") as f:
+        for line in f:
+            sample, bam, group = line.strip().split("\t")
+            if sample == "sample":
+                continue
+            experiment_dict[sample] = {"bam": bam, "group": group}
+    return experiment_dict
+experiment_dict = load_experiment(config["experiment_table"])
+juncfiles_list = []
+
+workdir: config["workdir"]
+container: config["container"]
+
+rule all:
+    input:
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        tpm = "results/expression/TPM.txt",
+        cpm = "results/expression/CPM.txt",
+        counts = "results/expression/counts.txt"
+
+rule bam2gtf:
+    wildcard_constraints:
+        sample = "|".join(experiment_dict)
+    input:
+        bam = lambda wildcards: experiment_dict[wildcards.sample]["bam"],
+        gtf = config["gtf"]
+    output:
+        temp("annotation/{sample}.gtf")
+    threads:
+        8
+    benchmark:
+        "benchmark/bam2gtf/{sample}.txt"
+    log:
+        "log/bam2gtf/{sample}.log"
+    shell:
+        """
+        stringtie -p {threads} \
+        -G {input.gtf} \
+        -o {output} \
+        {input.bam} >& {log}
+        """
+
+rule merge_gtf:
+    wildcard_constraints:
+        sample = "|".join(experiment_dict)
+    input:
+        gtflist = expand("annotation/{sample}.gtf", sample = experiment_dict),
+        gtf = config["gtf"]
+    output:
+        "annotation/assembled.gtf"
+    threads:
+        workflow.cores
+    benchmark:
+        "benchmark/merge_gtf.txt"
+    log:
+        "log/merge_gtf.log"
+    shell:
+        """
+        stringtie --merge \
+        -p {threads} \
+        -G {input.gtf} \
+        -o {output} \
+        {input.gtflist} >& {log}
+        """
+
+rule gtf2event:
+    input:
+        assembled_gtf = "annotation/assembled.gtf",
+        gtf = config["gtf"]
+    output:
+        directory("events")
+    threads:
+        workflow.cores
+    benchmark:
+        "benchmark/gtf2event.txt"
+    log:
+        "log/gtf2event.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/gtf2event.py \
+        -i {input.assembled_gtf} \
+        -r {input.gtf} \
+        -o {output} \
+        -p {threads} >& {log}
+        """
+
+rule bam2junc:
+    wildcard_constraints:
+        sample = "|".join(experiment_dict)
+    input:
+        bam = lambda wildcards: experiment_dict[wildcards.sample]["bam"]
+    output:
+        junc = temp("junctions/{sample}.junc")
+    threads:
+        1
+    benchmark:
+        "benchmark/bam2junc/{sample}_regtools.txt"
+    log:
+        "log/bam2junc/{sample}_regtools.log"
+    shell:
+        """
+        regtools junctions extract \
+        -a {config[minimum_anchor_length]} \
+        -m {config[minimum_intron_length]} \
+        -M {config[maximum_intron_length]} \
+        -s {config[strand]} \
+        -o {output.junc} \
+        {input.bam} >& {log}
+        """
+
+rule make_RI_saf:
+    input:
+        "events"
+    output:
+        temp("junctions/RI.saf")
+    shell:
+        """
+        cat {input}/EVENT_RI.txt | \
+        cut -f 6,7 | \
+        sed -e 1d | \
+        awk -F'\t' -v OFS='\t' '{{split($1,l,":"); split(l[2],m,"-"); print l[1]":"m[1]"-"m[1]+1,l[1],m[1],m[1]+1,$2; print l[1]":"m[2]-1"-"m[2],l[1],m[2]-1,m[2],$2}}' | \
+        awk '!a[$0]++' > {output}
+        """
+
+rule bam2junc_RI:
+    wildcard_constraints:
+        sample = "|".join(experiment_dict)
+    input:
+        RI = "junctions/RI.saf",
+        bam = lambda wildcards: experiment_dict[wildcards.sample]["bam"]
+    output:
+        junc = temp("junctions/{sample}_exon-intron.junc"),
+        junc_summary = temp("junctions/{sample}_exon-intron.junc.summary")
+    threads:
+        8
+    benchmark:
+        "benchmark/bam2junc/{sample}_featureCounts_RI.txt"
+    log:
+        "log/bam2junc/{sample}_featureCounts_RI.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/bam2junc_RI_snakemake.py \
+        -b {input.bam} \
+        -r {input.RI} \
+        -o {output.junc} \
+        -t {threads} \
+        &> {log}
+        """
+
+rule merge_junc:
+    input:
+        exonexon = expand("junctions/{sample}.junc", sample = experiment_dict),
+        exonintron = expand("junctions/{sample}_exon-intron.junc", sample = experiment_dict)
+    output:
+        "junctions/junctions.bed"
+    benchmark:
+        "benchmark/merge_junc.txt"
+    log:
+        "log/merge_junc.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/merge_junc_snakemake.py \
+        --exonexon {input.exonexon} \
+        --exonintron {input.exonintron} \
+        --output {output} >& {log}
+        """
+
+rule psi:
+    input:
+        junc = "junctions/junctions.bed",
+        event = "events"
+    output:
+        results = directory("results/splicing"),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"])
+    threads:
+        1
+    benchmark:
+        "benchmark/psi.txt"
+    log:
+        "log/psi.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/psi_snakemake.py \
+        -p {threads} \
+        -g {config[experiment_table]} \
+        -f {config[fdr]} \
+        -d {config[delta_psi]} \
+        -m {config[minimum_reads]} \
+        -r {config[reference_group]} \
+        -a {config[alternative_group]} \
+        -i {config[individual_psi]} \
+        -t {config[ttest]} \
+        --onlypsi {config[only_psi]} \
+        --onlypsi-group {config[only_psi_group]} \
+        --excel {config[excel]} \
+        {input.junc} \
+        {input.event} \
+        {output.results} >& {log}
+        """
+
+rule expression_featureCounts:
+    wildcard_constraints:
+        sample = "|".join(experiment_dict)
+    input:
+        bam = lambda wildcards: experiment_dict[wildcards.sample]["bam"],
+    output:
+        counts = temp("results/expression/{sample}_counts.txt"),
+        counts_summary = temp("results/expression/{sample}_counts.txt.summary")
+    threads:
+        8
+    benchmark:
+        "benchmark/expression/{sample}_featureCounts.txt"
+    log:
+        "log/expression/{sample}_featureCounts.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/expression_featureCounts_snakemake.py \
+        -b {input.bam} \
+        -g {config[gtf]} \
+        -o {output.counts} \
+        -t {threads} \
+        &> {log}
+        """
+
+rule expression_tpm:
+    input:
+        counts = expand("results/expression/{sample}_counts.txt", sample = experiment_dict)
+    output:
+        tpm = "results/expression/TPM.txt",
+        cpm = "results/expression/CPM.txt",
+        counts = "results/expression/counts.txt"
+    benchmark:
+        "benchmark/expression/TPM_CPM.txt"
+    log:
+        "log/expression/TPM_CPM.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/tpm_snakemake.py \
+        --countfiles {input.counts} \
+        --output results/expression/ \
+        &> {log}
+        """
