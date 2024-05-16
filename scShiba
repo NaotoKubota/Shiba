@@ -11,7 +11,7 @@ function usage {
 
 scShiba ${VERSION} -Pipeline for robust identification of differential RNA splicing in single-cell RNA-seq-
 
-Usage: $(basename "$0") -i experiment.txt -c config.txt
+Usage: $(basename "$0") -i experiment.tsv -c config.txt
 
     -h  Display help
     -v  Show version
