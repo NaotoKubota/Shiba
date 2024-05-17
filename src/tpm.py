@@ -1,6 +1,8 @@
 import argparse
 import sys
-sys.path.append("..")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+sys.path.append(parent_dir)
 from lib import expression
 import pandas as pd
 from styleframe import StyleFrame, Styler, utils
