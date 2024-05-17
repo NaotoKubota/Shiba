@@ -24,7 +24,7 @@ EOS
 SRC_PATH=$(dirname "$0")
 PROCESS=1
 REFGROUP="NA"
-EXPGROUP="NA"
+ALTGROUP="NA"
 
 
 function lack_of_necessary_param() {
@@ -38,7 +38,7 @@ IS_THERE_NECESSARY_OPT_g=false
 IS_THERE_NECESSARY_OPT_o=false
 
 
-while getopts "i:g:o:r:e:p:h" optKey; do
+while getopts "i:g:o:r:a:p:h" optKey; do
     case "$optKey" in
     i)
         IS_THERE_NECESSARY_OPT_i=true
@@ -55,8 +55,8 @@ while getopts "i:g:o:r:e:p:h" optKey; do
 	r)
         REFGROUP=${OPTARG}
         ;;
-    e)
-        EXPGROUP=${OPTARG}
+    a)
+        ALTGROUP=${OPTARG}
         ;;
     p)
         PROCESS=${OPTARG}
@@ -150,7 +150,7 @@ ${OUTPUTDIR}/countfiles.txt \
 ${OUTPUTDIR}/
 
 
-if [ "${REFGROUP}" == "NA" ] || [ "${EXPGROUP}" == "NA" ]; then
+if [ "${REFGROUP}" == "NA" ] || [ "${ALTGROUP}" == "NA" ]; then
 
     :
 
@@ -162,7 +162,7 @@ else
     ${EXPERIMENT} \
     ${OUTPUTDIR}/counts.txt \
     ${REFGROUP} \
-    ${EXPGROUP} \
+    ${ALTGROUP} \
     ${OUTPUTDIR}/DEG.txt 2> ${OUTPUTDIR}/logs/DESeq2.log
 
 fi
