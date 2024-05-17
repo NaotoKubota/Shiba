@@ -39,7 +39,7 @@ def deseq2(count, experiment_table, reference, alternative, output):
 
 		# Get path of directory where this script is located
 		workdir = os.path.dirname(os.path.abspath(__file__))
-		subprocess.call(["Rscript", workdir + "/deseq2.R", experiment_table, count, reference, alternative, output])
+		subprocess.call(["/opt_shiba/R/4.1.3/bin/Rscript", workdir + "/deseq2.R", experiment_table, count, reference, alternative, output])
 
 	else:
 
