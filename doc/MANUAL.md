@@ -64,8 +64,8 @@ NUM_PROCESS=16
 GTF=/path/to/workdir/Mus_musculus.GRCm38.102.gtf
 # Output directory
 OUTPUT=/path/to/workdir/output
-# Detect cryptic splicing events
-CRYPTIC=true
+# Detect unannotated splicing events
+UNANNOTATED=true
 
 ## Step3: bam2junc.sh
 
@@ -156,7 +156,7 @@ The output directory contains the following sub directories:
 - **strand**: Strand of the event (*+* or *-*).
 - **gene_id**: Gene ID.
 - **gene_name**: Gene name.
-- **label**: Label of the event type (*annotated* or *cryptic*).
+- **label**: Label of the event type (*annotated* or *unannotated*).
 - **Ref_PSI**: PSI of the reference group.
 - **Alt_PSI**: PSI of the alternative group.
 - **dPSI**: Delta PSI (Alt_PSI - Ref_PSI).
@@ -486,7 +486,7 @@ experiment_table:
   /path/to/experiment.tsv
 cpu:
   16
-cryptic:
+unannotated:
   True
 
 # Junction read filtering
