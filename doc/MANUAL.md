@@ -119,13 +119,13 @@ You can skip some steps by setting `SKIP_STEP1`, `SKIP_STEP2`, `SKIP_STEP3`, `SK
 # Docker
 cp experiment.tsv config.txt /path/to/workdir
 cd /path/to/workdir
-docker run --rm -v $(pwd):$(pwd) naotokubota/shiba:1.17 Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+docker run --rm -v $(pwd):$(pwd) naotokubota/shiba:0.1 Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 ```bash
 # Singularity
 cp experiment.tsv config.txt /path/to/workdir
-singularity exec docker://naotokubota/shiba:1.17 Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+singularity exec docker://naotokubota/shiba:0.1 Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 > [!NOTE]
@@ -479,7 +479,7 @@ A Snakemake-based workflow of Shiba. This is useful for running Shiba on a clust
 workdir:
   /path/to/workdir
 container:
-  docker://naotokubota/shiba:1.17
+  docker://naotokubota/shiba:0.1
 gtf:
   /path/to/Mus_musculus.GRCm38.102.gtf
 experiment_table:
@@ -632,13 +632,13 @@ You can skip some steps by setting `SKIP_STEP1`, `SKIP_STEP2`, and `SKIP_STEP3` 
 # Docker
 cp experiment.tsv config.txt /path/to/workdir
 cd /path/to/workdir
-docker run --rm -v $(pwd):$(pwd) naotokubota/shiba:1.17 scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+docker run --rm -v $(pwd):$(pwd) naotokubota/shiba:0.1 scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 ```bash
 # Singularity
 cp experiment.tsv config.txt /path/to/workdir
-singularity exec docker://naotokubota/shiba:1.17 scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+singularity exec docker://naotokubota/shiba:0.1 scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 The output directory contains the following sub directories:
@@ -665,7 +665,7 @@ A Snakemake-based workflow of scShiba.
 workdir:
   /path/to/workdir
 container:
-  docker://naotokubota/shiba:1.17
+  docker://naotokubota/shiba:0.1
 gtf:
   /path/to/Mus_musculus.GRCm38.102.gtf
 experiment_table:
