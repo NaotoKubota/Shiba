@@ -36,6 +36,8 @@ RUN wget https://cran.r-project.org/src/base/R-4/R-4.1.3.tar.gz && \
 	make && \
 	make install
 
+ENV PATH /opt_shiba/R/4.1.3/bin:$PATH
+
 # Install DESeq2
 RUN R -e "install.packages('BiocManager', repos = 'http://cran.us.r-project.org')" && \
 	R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/locfit/locfit_1.5-9.4.tar.gz", repos = NULL, type = "source")' && \
@@ -90,7 +92,7 @@ RUN cd /opt_shiba && \
 	chmod a+x Shiba scShiba
 
 # Set environment variables
-ENV PATH /opt_shiba/R/4.1.3/bin:$PATH:/opt_shiba/samtools-1.16.1:/opt_shiba/subread-2.0.3-Linux-x86_64/bin:/opt_shiba/stringtie-2.2.1:/opt_shiba/regtools-1.0.0/build:/opt_shiba/Shiba
+ENV PATH $PATH:/opt_shiba/samtools-1.16.1:/opt_shiba/subread-2.0.3-Linux-x86_64/bin:/opt_shiba/stringtie-2.2.1:/opt_shiba/regtools-1.0.0/build:/opt_shiba/Shiba
 
 # Set working directory
 WORKDIR /home
