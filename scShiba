@@ -222,11 +222,11 @@ if [ "${SKIP_STEP3}" == false ]; then
 
 	if [ "${ONLY_PSI}" == true ]; then
 
-        echo -e "python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -e ${ALTERNATIVE_GROUP} --onlypsi ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
+        echo -e "python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} --onlypsi ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
 		python ${SRC_PATH}/src/scpsi.py \
 		-p 1 \
 		-r ${REFERENCE_GROUP} \
-		-e ${ALTERNATIVE_GROUP} \
+		-a ${ALTERNATIVE_GROUP} \
 		--onlypsi \
 		${OUTPUT}/junctions/junctions.bed \
 		${OUTPUT}/events \
@@ -248,11 +248,11 @@ if [ "${SKIP_STEP3}" == false ]; then
             exit 1
         fi
 
-        echo -e "python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -e ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
+        echo -e "python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
 		python ${SRC_PATH}/src/scpsi.py \
 		-p 1 \
 		-r ${REFERENCE_GROUP} \
-		-e ${ALTERNATIVE_GROUP} \
+		-a ${ALTERNATIVE_GROUP} \
 		-f ${FDR} \
 		-d ${DELTA_PSI} \
 		-m ${MINIMUM_READS} \
