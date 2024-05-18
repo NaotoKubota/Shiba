@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/801784656.svg)](https://zenodo.org/doi/10.5281/zenodo.11214807)
+
 # Shiba
 
 An exon-centric computational pipeline for robust identification of differential RNA splicing.
