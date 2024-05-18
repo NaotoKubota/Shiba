@@ -1,8 +1,10 @@
 [![DOI](https://zenodo.org/badge/801784656.svg)](https://zenodo.org/doi/10.5281/zenodo.11214807)
 
+[![dockeri.co](https://dockerico.blankenship.io/image/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
+
 # Shiba
 
-An exon-centric computational pipeline for robust identification of differential RNA splicing.
+Container-based computational pipeline for robust identification of differential RNA splicing.
 
 <img src="img/Shiba_icon.png" width=50%>
 
