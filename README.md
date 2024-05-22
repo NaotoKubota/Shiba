@@ -1,4 +1,5 @@
 [![DOI](https://zenodo.org/badge/801784656.svg)](https://zenodo.org/doi/10.5281/zenodo.11214807)
+![GitHub Release](https://img.shields.io/github/v/release/NaotoKubota/Shiba?style=flat)
 
 [![dockeri.co](https://dockerico.blankenship.io/image/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
 
