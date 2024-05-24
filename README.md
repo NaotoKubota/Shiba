@@ -13,6 +13,12 @@ Container-based computational pipeline for robust identification of differential
 
 <img src="img/Shiba_overview.png" width=75%>
 
+## Installation
+
+```bash
+docker pull naotokubota/shiba:0.1
+```
+
 ## Usage
 
 ***Shiba***
