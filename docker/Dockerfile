@@ -87,7 +87,7 @@ RUN cd /opt_shiba && \
 # Install Shiba
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
 RUN cd /opt_shiba && \
-	git clone https://github.com/NaotoKubota/Shiba.git && \
+	git clone https://github.com/NaotoKubota/Shiba.git -b v0.1 && \
 	cd Shiba && \
 	chmod a+x Shiba scShiba
 
