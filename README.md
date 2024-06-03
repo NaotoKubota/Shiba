@@ -46,3 +46,7 @@ snakemake -s SnakeScShiba --configfile config.yaml --cores 32 --use-singularity
 ```
 
 See [the manual document](https://github.com/NaotoKubota/Shiba/blob/main/doc/MANUAL.md) for details.
+
+## Citation
+
+Kubota N, Chen L, Zheng S. (2024). [Shiba: A unified computational method for robust identification of differential RNA splicing across platforms](https://www.biorxiv.org/content/10.1101/2024.05.30.596331v1). *bioRxiv* 2024.05.30.596331
