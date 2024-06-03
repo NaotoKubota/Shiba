@@ -89,7 +89,8 @@ def main():
         group_list = shibalib.set_group(group_df, onlypsi_group, reference, alternative)
         print("Groups: " + str(group_list), file = sys.stdout)
         # Get sample list for each group
-        sample_list = shibalib.sample_in_group_list(group_df, group_list)
+        if onlypsi_group == False:
+            sample_list = shibalib.sample_in_group_list(group_df, group_list)
         # print("Samples: " + str(sample_list), file = sys.stdout)
         # Sum read count for each group
         junc_group_df = shibalib.sum_reads(onlypsi_group, junc_df, group_df, group_list)
