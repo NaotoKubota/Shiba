@@ -90,13 +90,13 @@ FDR=0.05
 DELTA_PSI=0.1
 # Reference group for DSE detection
 REFERENCE_GROUP=Ref
-# Experiment group for DSE detection
-EXPERIMENT_GROUP=Alt
+# Alternative group for DSE detection
+ALTERNATIVE_GROUP=Alt
 # Minumum value of total reads for each junction
 MINIMUM_READS=10
 # Print PSI for individual samples to output files
 INDIVIDUAL_PSI=true
-# Perform Welch's t-test between reference and experiment group
+# Perform Welch's t-test between reference and Alternative group
 TTEST=true
 
 ## Skip steps
@@ -394,7 +394,7 @@ Usage: bam2junc.sh -i experiment.tsv -r RI_EVENT.txt -o junctions.bed -p [VALUE]
 Calculate PSI and detect differential events.
 
 ```bash
-usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-e EXPERIMENT] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel] junctions event output
+usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel] junctions event output
 
 PSI calculation for alternative splicing events
 
@@ -413,12 +413,12 @@ options:
   -d PSI, --psi PSI     Threshold of delta PSI for detecting differential events (default: 0.1)
   -r REFERENCE, --reference REFERENCE
                         Reference group for detecting differential events (default: None)
-  -e EXPERIMENT, --experiment EXPERIMENT
-                        Experiment group for detecting differential events (default: None)
+  -a ALTERNATIVE, --alternative ALTERNATIVE
+                        Alternative group for detecting differential events (default: None)
   -m MINIMUM_READS, --minimum-reads MINIMUM_READS
                         Minumum value of total reads for each junction for detecting differential events (default: 10)
   -i, --individual-psi  Print PSI for individual samples to output files (default: False)
-  -t, --ttest           Perform Welch's t-test between reference and experiment group (default: False)
+  -t, --ttest           Perform Welch's t-test between reference and alternative group (default: False)
   --onlypsi             Just calculate PSI for each sample, not perform statistical tests (default: False)
   --onlypsi-group       Just calculate PSI for each group, not perform statistical tests (default: False)
   --excel               Make result files in excel format (default: False)
@@ -446,14 +446,14 @@ options:
 Gene expression analysis.
 
 ```bash
-Usage: expression.sh -i experiment.tsv -g reference_annotation.gtf -o output_dir -r [VALUE] -e [VALUE] -p [VALUE]
+Usage: expression.sh -i experiment.txt -g reference_annotation.gtf -o output_dir -r [VALUE] -a [VALUE] -p [VALUE]
 
     -h  Display help
     -i  Experiment table
     -g  Reference GTF file
     -o  Output directory
     -r  Reference group for differential expression analysis (default: NA)
-    -e  Experiment group for differential expression analysis (default: NA)
+    -a  Alternative group for differential expression analysis (default: NA)
     -p  Number of processors to use (default: 1)
 ```
 
@@ -610,8 +610,8 @@ FDR=0.05
 DELTA_PSI=0.1
 # Reference group for DSE detection
 REFERENCE_GROUP=Ref
-# Experiment group for DSE detection
-EXPERIMENT_GROUP=Alt
+# Alternative group for DSE detection
+ALTERNATIVE_GROUP=Alt
 # Minumum value of total reads for each junction
 MINIMUM_READS=10
 
