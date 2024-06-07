@@ -112,6 +112,7 @@ def main():
 
     # Save output
     print("Saving output...", file=sys.stderr)
+    os.makedirs(args.output, exist_ok=True)
     tpm_feature_df.to_csv(os.path.join(args.output, "tpm_pca.tsv"), sep="\t")
     tpm_contribution_df.to_csv(os.path.join(args.output, "tpm_contribution.tsv"), sep="\t", header=False)
     # psi_feature_df.to_csv(os.path.join(args.output, "psi_pca.tsv"), sep="\t")
