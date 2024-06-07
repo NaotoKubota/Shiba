@@ -1,8 +1,8 @@
 '''
-SnakeShiba_Diff: A snakemake-based workflow of Shiba for differential RNA splicing analysis between two groups of samples
+SnakeShiba: A snakemake-based workflow of Shiba for differential RNA splicing analysis between two groups of samples
 
 Usage:
-    snakemake -s SnakeShiba_Diff --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
+    snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
 def load_experiment(file):
