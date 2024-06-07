@@ -39,7 +39,7 @@ sample_5<tab>/path/to/workdir/bam/sample_5.bam<tab>Alt
 sample_6<tab>/path/to/workdir/bam/sample_6.bam<tab>Alt
 ```
 
-Please put bam files in the `path/to/workdir/bam` directory and replace `<tab>` with a tab character.
+Please put bam files with their index files (`.bai`) in the `path/to/workdir/bam` directory and replace `<tab>` with a tab character.
 
 </details>
 
