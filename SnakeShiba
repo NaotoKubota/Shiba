@@ -1,8 +1,8 @@
 '''
-SnakeShiba: A snakemake-based workflow of Shiba for splicing quantification for all groups of samples
+SnakeShiba_Diff: A snakemake-based workflow of Shiba for differential RNA splicing analysis between two groups of samples
 
 Usage:
-    snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
+    snakemake -s SnakeShiba_Diff --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
 def load_experiment(file):
@@ -23,9 +23,11 @@ container: config["container"]
 rule all:
     input:
         PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        plots = "plots/summary.html",
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
-        counts = "results/expression/counts.txt"
+        counts = "results/expression/counts.txt",
+        deg = "results/expression/DEG.txt"
 
 rule bam2gtf:
     wildcard_constraints:
@@ -207,6 +209,23 @@ rule psi:
         {output.results} >& {log}
         """
 
+rule plots:
+    input:
+        "results/splicing"
+    output:
+        plots = directory("plots"),
+        summary = "plots/summary.html"
+    benchmark:
+        "benchmark/plots.txt"
+    log:
+        "log/plots.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/plots.py \
+        {input} \
+        {output.plots} >& {log}
+        """
+
 rule expression_featureCounts:
     wildcard_constraints:
         sample = "|".join(experiment_dict)
@@ -247,5 +266,25 @@ rule expression_tpm:
         python /opt_shiba/Shiba/src/tpm_snakemake.py \
         --countfiles {input.counts} \
         --output results/expression/ \
+        &> {log}
+        """
+
+rule deseq2:
+    input:
+        counts = "results/expression/counts.txt"
+    output:
+        deseq2 = "results/expression/DEG.txt"
+    benchmark:
+        "benchmark/expression/DESeq2.txt"
+    log:
+        "log/expression/DESeq2.log"
+    shell:
+        """
+        python /opt_shiba/Shiba/src/deseq2_snakemake.py \
+        --count {input.counts} \
+        --experiment-table {config[experiment_table]} \
+        --reference {config[reference_group]} \
+        --alternative {config[alternative_group]} \
+        --output {output.deseq2} \
         &> {log}
         """
