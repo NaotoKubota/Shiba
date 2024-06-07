@@ -457,6 +457,28 @@ Usage: expression.sh -i experiment.txt -g reference_annotation.gtf -o output_dir
     -p  Number of processors to use (default: 1)
 ```
 
+#### Step7: `pca.py`
+
+Principal component analysis.
+
+```bash
+usage: pca.py [-h] [--input-tpm INPUT_TPM] [--input-psi INPUT_PSI] [-g GENES] [-o OUTPUT]
+
+pca.py: Principal Component Analysis for matrix of gene expression and splicing
+
+options:
+  -h, --help            show this help message and exit
+  --input-tpm INPUT_TPM
+                        Input TPM file (default: None)
+  --input-psi INPUT_PSI
+                        Input PSI file (default: None)
+  -g GENES, --genes GENES
+                        Number of highly-variable genes to calculate PCs (default: None)
+  -o OUTPUT, --output OUTPUT
+                        Output directory (default: None)
+```
+
+
 </details>
 
 ## SnakeShiba
