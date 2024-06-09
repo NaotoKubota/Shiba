@@ -119,7 +119,7 @@ def main():
     tpm_feature_df.to_csv(os.path.join(args.output, "tpm_pca.tsv"), sep="\t")
     tpm_contribution_df.to_csv(os.path.join(args.output, "tpm_contribution.tsv"), sep="\t", header=False)
     psi_feature_df.to_csv(os.path.join(args.output, "psi_pca.tsv"), sep="\t")
-    psi_contribution_df.to_csv(os.path.join(args.output, "psi_contribution.tsv"), sep="\t")
+    psi_contribution_df.to_csv(os.path.join(args.output, "psi_contribution.tsv"), sep="\t", header=False)
 
     print("Done!", file=sys.stderr)
 
