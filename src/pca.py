@@ -16,7 +16,7 @@ def get_args():
 
     parser.add_argument('--input-tpm', type=str, help='Input TPM file')
     parser.add_argument('--input-psi', type=str, help='Input PSI file')
-    parser.add_argument('-g', '--genes', type=int, help='Number of highly-variable genes to calculate PCs')
+    parser.add_argument('-g', '--genes', type=int, help='Number of highly-variable genes or splicing events to calculate PCs')
     parser.add_argument('-o', '--output', type=str, help='Output directory')
 
     args = parser.parse_args()
@@ -36,6 +36,10 @@ def load_tpm_table(tpm_file: str) -> pd.DataFrame:
     '''
 
     tpm_df = pd.read_csv(tpm_file, sep="\t", index_col=0)
+    # Drop rows with all zeros
+    tpm_df = tpm_df.loc[(tpm_df != 0).any(axis=1)]
+    # Drop rows with NaN
+    tpm_df = tpm_df.dropna()
 
     return tpm_df
 
@@ -53,6 +57,8 @@ def load_psi_table(psi_file: str) -> pd.DataFrame:
 
     psi_df = pd.read_csv(psi_file, sep="\t", index_col=0)
     psi_df = psi_df.drop(columns = ["pos_id"])
+    # Drop rows with NaN
+    psi_df = psi_df.dropna()
 
     return psi_df
 
@@ -70,12 +76,9 @@ def mtx2pca(df, genes) -> pd.DataFrame:
     - contribution_df (pd.DataFrame): dataframe containing the contribution of each principal component
     '''
 
-    # Drop rows with all zeros
-    df = df.loc[(df != 0).any(axis=1)]
-    # Drop rows with NaN
-    df = df.dropna()
-    # Keep rows of top n highly-variable geness
-    df = df.loc[df.var(axis=1).sort_values(ascending=False).index[:genes]]
+    # Keep rows of top n highly-variable genes
+    if df.shape[0] > genes:
+        df = df.loc[df.var(axis=1).sort_values(ascending=False).index[:genes]]
 
     # Z-score normalization across samples
     normalized_df = df.T.apply(stats.zscore, ddof = 1)
@@ -103,20 +106,20 @@ def main():
     # Load input files
     print("Loading input files...", file=sys.stderr)
     tpm_df = load_tpm_table(args.input_tpm)
-    # psi_df = load_psi_table(args.input_psi)
+    psi_df = load_psi_table(args.input_psi)
 
     # Perform PCA
     print("Performing PCA...", file=sys.stderr)
     tpm_feature_df, tpm_contribution_df = mtx2pca(tpm_df, args.genes)
-    # psi_feature_df, psi_contribution_df = mtx2pca(psi_df, args.genes)
+    psi_feature_df, psi_contribution_df = mtx2pca(psi_df, args.genes)
 
     # Save output
     print("Saving output...", file=sys.stderr)
     os.makedirs(args.output, exist_ok=True)
     tpm_feature_df.to_csv(os.path.join(args.output, "tpm_pca.tsv"), sep="\t")
     tpm_contribution_df.to_csv(os.path.join(args.output, "tpm_contribution.tsv"), sep="\t", header=False)
-    # psi_feature_df.to_csv(os.path.join(args.output, "psi_pca.tsv"), sep="\t")
-    # psi_contribution_df.to_csv(os.path.join(args.output, "psi_contribution.tsv"), sep="\t")
+    psi_feature_df.to_csv(os.path.join(args.output, "psi_pca.tsv"), sep="\t")
+    psi_contribution_df.to_csv(os.path.join(args.output, "psi_contribution.tsv"), sep="\t")
 
     print("Done!", file=sys.stderr)
 
