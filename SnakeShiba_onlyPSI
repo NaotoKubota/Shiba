@@ -28,7 +28,9 @@ rule all:
         cpm = "results/expression/CPM.txt",
         counts = "results/expression/counts.txt",
         tpm_pca = "results/pca/tpm_pca.tsv",
-        tpm_contribution = "results/pca/tpm_contribution.tsv"
+        tpm_contribution = "results/pca/tpm_contribution.tsv",
+        psi_pca = "results/pca/psi_pca.tsv",
+        psi_contribution = "results/pca/psi_contribution.tsv"
 
 rule bam2gtf:
     wildcard_constraints:
@@ -189,7 +191,8 @@ rule psi:
         event = "events"
     output:
         results = directory("results/splicing"),
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"])
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
     threads:
         1
     benchmark:
@@ -211,7 +214,7 @@ rule psi:
         -i {config[individual_psi]} \
         -t {config[ttest]} \
         --onlypsi {config[only_psi]} \
-        --onlypsi-group {config[only_psi_group]} \
+        --onlypsi-group False \
         --excel {config[excel]} \
         {input.junc} \
         {input.event} \
@@ -267,10 +270,13 @@ rule expression_tpm:
 
 rule pca:
     input:
-        tpm = "results/expression/TPM.txt"
+        tpm = "results/expression/TPM.txt",
+        PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
     output:
         tpm_pca = "results/pca/tpm_pca.tsv",
-        tpm_contribution = "results/pca/tpm_contribution.tsv"
+        tpm_contribution = "results/pca/tpm_contribution.tsv",
+        psi_pca = "results/pca/psi_pca.tsv",
+        psi_contribution = "results/pca/psi_contribution.tsv"
     benchmark:
         "benchmark/pca/pca.txt"
     log:
@@ -281,6 +287,7 @@ rule pca:
         """
         python {params.base_dir}/src/pca.py \
         --input-tpm {input.tpm} \
+        --input-psi {input.PSI_matrix_sample} \
         -g 3000 \
         -o results/pca \
         &> {log}

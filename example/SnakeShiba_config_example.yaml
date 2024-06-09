@@ -24,8 +24,6 @@ strand:
 # PSI calculation
 only_psi:
   False
-only_psi_group:
-  False
 fdr:
   0.05
 delta_psi:
