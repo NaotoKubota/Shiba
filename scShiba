@@ -3,7 +3,7 @@ set -o pipefail
 # Prevent commands misbehaving due to locale differences
 export LC_ALL=C
 
-VERSION="v0.1"
+VERSION="v0.2"
 
 
 function usage {
@@ -155,11 +155,9 @@ echo -e "
 "
 if [ "${SKIP_STEP1}" == false ]; then
 
-    echo -e "python ${SRC_PATH}/src/gtf2event.py -i ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
-    python ${SRC_PATH}/src/gtf2event.py \
-    -i ${GTF} \
-    -o ${OUTPUT}/events \
-    -p ${NUM_PROCESS}
+    STEP1_COMMAND="python ${SRC_PATH}/src/gtf2event.py -i ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
+    echo -e "${STEP1_COMMAND}"
+    ${STEP1_COMMAND}
 
 else
 
@@ -183,10 +181,9 @@ echo -e "
 "
 if [ "${SKIP_STEP2}" == false ]; then
 
-    echo -e "python ${SRC_PATH}/src/sc2junc.py -i ${EXPERIMENT_TABLE_ABSPATH} -o ${OUTPUT}/junctions/junctions.bed"
-	python ${SRC_PATH}/src/sc2junc.py \
-	-i ${EXPERIMENT_TABLE_ABSPATH} \
-	-o ${OUTPUT}/junctions/junctions.bed \
+    STEP2_COMMAND="python ${SRC_PATH}/src/sc2junc.py -i ${EXPERIMENT_TABLE_ABSPATH} -o ${OUTPUT}/junctions/junctions.bed"
+    echo -e "${STEP2_COMMAND}"
+    ${STEP2_COMMAND}
 
 else
 
@@ -222,15 +219,9 @@ if [ "${SKIP_STEP3}" == false ]; then
 
 	if [ "${ONLY_PSI}" == true ]; then
 
-        echo -e "python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} --onlypsi ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
-		python ${SRC_PATH}/src/scpsi.py \
-		-p 1 \
-		-r ${REFERENCE_GROUP} \
-		-a ${ALTERNATIVE_GROUP} \
-		--onlypsi \
-		${OUTPUT}/junctions/junctions.bed \
-		${OUTPUT}/events \
-		${OUTPUT}/results \
+        STEP3_COMMAND_1="python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} --onlypsi ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
+        echo -e "${STEP3_COMMAND_1}"
+        ${STEP3_COMMAND_1}
 
 	else
 
@@ -248,17 +239,9 @@ if [ "${SKIP_STEP3}" == false ]; then
             exit 1
         fi
 
-        echo -e "python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
-		python ${SRC_PATH}/src/scpsi.py \
-		-p 1 \
-		-r ${REFERENCE_GROUP} \
-		-a ${ALTERNATIVE_GROUP} \
-		-f ${FDR} \
-		-d ${DELTA_PSI} \
-		-m ${MINIMUM_READS} \
-		${OUTPUT}/junctions/junctions.bed \
-		${OUTPUT}/events \
-		${OUTPUT}/results \
+        STEP3_COMMAND_2="python ${SRC_PATH}/src/scpsi.py -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results"
+        echo -e "${STEP3_COMMAND_2}"
+        ${STEP3_COMMAND_2}
 
 	fi
 
