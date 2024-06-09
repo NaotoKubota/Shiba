@@ -28,6 +28,7 @@ rule all:
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
         counts = "results/expression/counts.txt",
+        deg = "results/expression/DEG.txt",
         tpm_pca = "results/pca/tpm_pca.tsv",
         tpm_contribution = "results/pca/tpm_contribution.tsv",
         psi_pca = "results/pca/psi_pca.tsv",
@@ -285,6 +286,26 @@ rule expression_tpm:
         python {params.base_dir}/src/tpm_snakemake.py \
         --countfiles {input.counts} \
         --output results/expression/ \
+        &> {log}
+        """
+
+rule deseq2:
+    input:
+        counts = "results/expression/counts.txt"
+    output:
+        deseq2 = "results/expression/DEG.txt"
+    benchmark:
+        "benchmark/expression/DESeq2.txt"
+    log:
+        "log/expression/DESeq2.log"
+    shell:
+        """
+        python /rhome/naotok/Shiba-dev/deseq2_snakemake.py \
+        --count {input.counts} \
+        --experiment-table {config[experiment_table]} \
+        --reference {config[reference_group]} \
+        --alternative {config[alternative_group]} \
+        --output {output.deseq2} \
         &> {log}
         """
 
