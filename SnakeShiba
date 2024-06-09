@@ -225,7 +225,7 @@ rule psi:
 
 rule plots:
     input:
-        "results/splicing"
+        "results"
     output:
         plots = directory("plots"),
         summary = "plots/summary.html"

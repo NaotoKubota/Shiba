@@ -27,7 +27,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 	# load data
 	df = pd.read_csv(
 
-		input_dir + "/PSI_" + AS + ".txt",
+		input_dir + "/splicing/PSI_" + AS + ".txt",
 		sep = "\t"
 
 	)
