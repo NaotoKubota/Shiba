@@ -107,9 +107,10 @@ SKIP_STEP3=false # bam2junc.sh
 SKIP_STEP4=false # psi.py
 SKIP_STEP5=false # plots.py
 SKIP_STEP6=false # expression.sh
+SKIP_STEP7=false # pca.py
 ```
 
-You can skip some steps by setting `SKIP_STEP1`, `SKIP_STEP2`, `SKIP_STEP3`, `SKIP_STEP4`, `SKIP_STEP5`, and `SKIP_STEP6` to `true`.
+You can skip some steps by setting `SKIP_STEP*` to `true`.
 
 </details>
 
@@ -259,12 +260,19 @@ The output directory contains the following sub directories:
 - `CPM.txt`: CPM values for all samples.
 - `DEG.txt`: Results of differential expression analysis by DESeq2.
 
+#### Files in `results/pca`
+
+- `tpm_pca.tsv`: Principal components for TPM matrix.
+- `tpm_contribution.tsv`: Contribution to each principal component for TPM matrix.
+- `psi_pca.tsv`: Principal components for PSI matrix.
+- `psi_contribution.tsv`: Contribution to each principal component for PSI matrix.
+
 <details>
 
-<summary>Output directory structure:</summary>
+<summary>An example of output directory structure:</summary>
 
 ```bash
-output/
+output
 ├── annotation
 │   └── assembled_annotation.gtf
 ├── events
@@ -296,23 +304,31 @@ output/
 │   │   ├── volcano_SE.html
 │   │   └── volcano_THREE.html
 │   └── summary.html
-└── results
-    ├── expression
-    │   ├── counts.txt
-    │   ├── CPM.txt
-    │   ├── DEG.txt
-    │   ├── logs
-    │   │   ├── DESeq2.log
-    │   │   └── featureCounts.log
-    │   ├── TPM_CPM.xlsx
-    │   └── TPM.txt
-    ├── PSI_FIVE.txt
-    ├── PSI_MXE.txt
-    ├── PSI_RI.txt
-    ├── PSI_SE.txt
-    ├── PSI_THREE.txt
-    ├── results.xlsx
-    └── summary.txt
+├── results
+│   ├── expression
+│   │   ├── counts.txt
+│   │   ├── CPM.txt
+│   │   ├── DEG.txt
+│   │   ├── logs
+│   │   │   ├── DESeq2.log
+│   │   │   └── featureCounts.log
+│   │   ├── TPM_CPM.xlsx
+│   │   └── TPM.txt
+│   ├── pca
+│   │   ├── psi_contribution.tsv
+│   │   ├── psi_pca.tsv
+│   │   ├── tpm_contribution.tsv
+│   │   └── tpm_pca.tsv
+│   └── splicing
+│       ├── PSI_FIVE.txt
+│       ├── PSI_matrix_group.txt
+│       ├── PSI_matrix_sample.txt
+│       ├── PSI_MXE.txt
+│       ├── PSI_RI.txt
+│       ├── PSI_SE.txt
+│       ├── PSI_THREE.txt
+│       └── summary.txt
+└── Shiba.log
 ```
 
 </details>
@@ -394,7 +410,8 @@ Usage: bam2junc.sh -i experiment.tsv -r RI_EVENT.txt -o junctions.bed -p [VALUE]
 Calculate PSI and detect differential events.
 
 ```bash
-usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel] junctions event output
+usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel]
+              junctions event output
 
 PSI calculation for alternative splicing events
 
@@ -420,7 +437,7 @@ options:
   -i, --individual-psi  Print PSI for individual samples to output files (default: False)
   -t, --ttest           Perform Welch's t-test between reference and alternative group (default: False)
   --onlypsi             Just calculate PSI for each sample, not perform statistical tests (default: False)
-  --onlypsi-group       Just calculate PSI for each group, not perform statistical tests (default: False)
+  --onlypsi-group       Just calculate PSI for each group, not perform statistical tests (Overrides --onlypsi when used together) (default: False)
   --excel               Make result files in excel format (default: False)
 ```
 
@@ -473,7 +490,7 @@ options:
   --input-psi INPUT_PSI
                         Input PSI file (default: None)
   -g GENES, --genes GENES
-                        Number of highly-variable genes to calculate PCs (default: None)
+                        Number of highly-variable genes or splicing events to calculate PCs (default: None)
   -o OUTPUT, --output OUTPUT
                         Output directory (default: None)
 ```
@@ -523,8 +540,6 @@ strand:
 
 # PSI calculation
 only_psi:
-  False
-only_psi_group:
   False
 fdr:
   0.05
@@ -585,14 +600,14 @@ barcode<tab>SJ
 
 ```bash
 barcode<tab>group
-TTTGTTGTCCACACCT<tab>CellType-1
-TCAAGACCACTACAGT<tab>CellType-1
-TATTTCGGTACAGTAA<tab>CellType-1
-ATCCTATGTTAATCGC<tab>CellType-1
-ATCGATGAGTTTCTTC<tab>CellType-2
-ATCGATGGTCTTGCTC<tab>CellType-2
-TATGTTCGTCAGGCAA<tab>CellType-2
-ATCGCCTAGACTCGAG<tab>CellType-2
+TTTGTTGTCCACACCT<tab>Cluster-1
+TCAAGACCACTACAGT<tab>Cluster-1
+TATTTCGGTACAGTAA<tab>Cluster-1
+ATCCTATGTTAATCGC<tab>Cluster-1
+ATCGATGAGTTTCTTC<tab>Cluster-2
+ATCGATGGTCTTGCTC<tab>Cluster-2
+TATGTTCGTCAGGCAA<tab>Cluster-2
+ATCGCCTAGACTCGAG<tab>Cluster-2
 ...
 ```
 
