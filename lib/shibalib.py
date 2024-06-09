@@ -181,20 +181,20 @@ def set_group(group_df, onlypsi_group, reference, alternative) -> list:
 
     group_list = sorted(group_df['group'].unique().tolist())
 
-    if onlypsi_group == False:
+    # if onlypsi_group == False:
 
-        if reference and alternative:
+    #     if reference and alternative:
 
-            group_list = [reference, alternative]
+    #         group_list = [reference, alternative]
 
-        elif reference:
+    #     elif reference:
 
-            group_list.remove(reference)
-            group_list = [reference, group_list[0]]
+    #         group_list.remove(reference)
+    #         group_list = [reference, group_list[0]]
 
-        else:
+    #     else:
 
-            group_list = [group_list[0], group_list[1]]
+    #         group_list = [group_list[0], group_list[1]]
 
     return(group_list)
 
@@ -252,37 +252,48 @@ def sum_reads(onlypsi_group, junc_df, group_df, group_list) -> pd.DataFrame:
     - pd.DataFrame: A pandas DataFrame containing the sum of reads for each junction.
     """
 
-    if onlypsi_group == False:
+    # if onlypsi_group == False:
 
-        group1 = group_list[0]
-        group2 = group_list[1]
+    #     group1 = group_list[0]
+    #     group2 = group_list[1]
 
-        sample_group1 = list(group_df[group_df['group'] == group1]["sample"])
-        sample_group2 = list(group_df[group_df['group'] == group2]["sample"])
+    #     sample_group1 = list(group_df[group_df['group'] == group1]["sample"])
+    #     sample_group2 = list(group_df[group_df['group'] == group2]["sample"])
 
-        # Melt dataframe
-        junc_df = pd.melt(
+    #     # Melt dataframe
+    #     junc_df = pd.melt(
 
-            junc_df,
-            id_vars = ["ID"],
-            value_vars = sample_group1 + sample_group2,
-            var_name = "sample",
-            value_name = "reads"
+    #         junc_df,
+    #         id_vars = ["ID"],
+    #         value_vars = sample_group1 + sample_group2,
+    #         var_name = "sample",
+    #         value_name = "reads"
 
-        )
+    #     )
 
-    else:
+    # else:
 
-        # Melt dataframe
-        junc_df = pd.melt(
+    #     # Melt dataframe
+    #     junc_df = pd.melt(
 
-            junc_df,
-            id_vars = ["ID"],
-            value_vars = group_df["sample"].tolist(),
-            var_name = "sample",
-            value_name = "reads"
+    #         junc_df,
+    #         id_vars = ["ID"],
+    #         value_vars = group_df["sample"].tolist(),
+    #         var_name = "sample",
+    #         value_name = "reads"
 
-        )
+    #     )
+
+    # Melt dataframe
+    junc_df = pd.melt(
+
+        junc_df,
+        id_vars = ["ID"],
+        value_vars = group_df["sample"].tolist(),
+        var_name = "sample",
+        value_name = "reads"
+
+    )
 
     # Add group information
     junc_df = pd.merge(
@@ -308,13 +319,15 @@ def sum_reads(onlypsi_group, junc_df, group_df, group_list) -> pd.DataFrame:
     junc_df['chr'] = "chr" + junc_df['ID'].str.split(":", expand = True)[0]
     junc_df['start'] = junc_df['ID'].str.split(":", expand = True)[1].str.split("-", expand = True)[0]
     junc_df['end'] = junc_df['ID'].str.split(":", expand = True)[1].str.split("-", expand = True)[1]
-    if onlypsi_group == False:
+    # if onlypsi_group == False:
 
-        col = ["chr", "start", "end", "ID", group1, group2]
+    #     col = ["chr", "start", "end", "ID", group1, group2]
 
-    else:
+    # else:
 
-        col = ["chr", "start", "end", "ID"] + group_list
+    #     col = ["chr", "start", "end", "ID"] + group_list
+
+    col = ["chr", "start", "end", "ID"] + group_list
 
     junc_df = junc_df[col]
 
@@ -511,9 +524,9 @@ def col_se(sample_id, group_or_not) -> list:
 
     col = []
 
-    if group_or_not:
+    # if group_or_not:
 
-        sample_id = ["ref", "alt"]
+    #     sample_id = ["ref", "alt"]
 
     for i in sample_id:
 
@@ -705,9 +718,9 @@ def col_five_three(sample_id, group_or_not) -> list:
 
     col = []
 
-    if group_or_not:
+    # if group_or_not:
 
-        sample_id = ["ref", "alt"]
+    #     sample_id = ["ref", "alt"]
 
     for i in sample_id:
 
@@ -1012,9 +1025,9 @@ def col_mxe(sample_id, group_or_not) -> list:
 
     col = []
 
-    if group_or_not:
+    # if group_or_not:
 
-        sample_id = ["ref", "alt"]
+    #     sample_id = ["ref", "alt"]
 
     for i in sample_id:
 
@@ -1203,9 +1216,9 @@ def col_ri(sample_id, group_or_not) -> list:
 
     col = []
 
-    if group_or_not:
+    # if group_or_not:
 
-        sample_id = ["ref", "alt"]
+    #     sample_id = ["ref", "alt"]
 
     for i in sample_id:
 
@@ -1401,14 +1414,20 @@ def diff_se(df, group_list, FDR, dPSI) -> pd.DataFrame:
     group1 = group_list[0]
     group2 = group_list[1]
 
-    group1_junction_a = "ref_junction_a"
-    group1_junction_b = "ref_junction_b"
-    group1_junction_c = "ref_junction_c"
-    group1_PSI = "ref_PSI"
-    group2_junction_a = "alt_junction_a"
-    group2_junction_b = "alt_junction_b"
-    group2_junction_c = "alt_junction_c"
-    group2_PSI = "alt_PSI"
+    group1_junction_a = group1 + "_junction_a"
+    group1_junction_b = group1 + "_junction_b"
+    group1_junction_c = group1 + "_junction_c"
+    group1_PSI = group1 + "_PSI"
+    group2_junction_a = group2 + "_junction_a"
+    group2_junction_b = group2 + "_junction_b"
+    group2_junction_c = group2 + "_junction_c"
+    group2_PSI = group2 + "_PSI"
+
+    # Keep columns of junctions and PSI of the two groups
+    result_df = result_df[
+        ["event_id", "pos_id", "exon", "intron_a", "intron_b", "intron_c", "strand", "gene_id", "gene_name", "label"] + \
+        [group1_junction_a, group1_junction_b, group1_junction_c, group1_PSI, group2_junction_a, group2_junction_b, group2_junction_c, group2_PSI]
+    ]
 
     if result_df.shape[0] != 0:
 
@@ -1484,6 +1503,18 @@ def diff_se(df, group_list, FDR, dPSI) -> pd.DataFrame:
 
         result_df.loc[result_df["q"] == 0, "q"] = 1e-323
 
+    # Rename columns
+    result_df = result_df.rename(columns = {
+        group1 + "_junction_a": "ref_junction_a",
+        group1 + "_junction_b": "ref_junction_b",
+        group1 + "_junction_c": "ref_junction_c",
+        group1 + "_PSI": "ref_PSI",
+        group2 + "_junction_a": "alt_junction_a",
+        group2 + "_junction_b": "alt_junction_b",
+        group2 + "_junction_c": "alt_junction_c",
+        group2 + "_PSI": "alt_PSI"
+    })
+
     return(result_df)
 
 
@@ -1510,12 +1541,18 @@ def diff_five_three(df, group_list, FDR, dPSI) -> pd.DataFrame:
     group1 = group_list[0]
     group2 = group_list[1]
 
-    group1_junction_a = "ref_junction_a"
-    group1_junction_b = "ref_junction_b"
-    group1_PSI = "ref_PSI"
-    group2_junction_a = "alt_junction_a"
-    group2_junction_b = "alt_junction_b"
-    group2_PSI = "alt_PSI"
+    group1_junction_a = group1 + "_junction_a"
+    group1_junction_b = group1 + "_junction_b"
+    group1_PSI = group1 + "_PSI"
+    group2_junction_a = group2 + "_junction_a"
+    group2_junction_b = group2 + "_junction_b"
+    group2_PSI = group2 + "_PSI"
+
+    # Keep columns of junctions and PSI of the two groups
+    result_df = result_df[
+        ["event_id", "pos_id", "exon_a", "exon_b", "intron_a", "intron_b", "strand", "gene_id", "gene_name", "label"] + \
+        [group1_junction_a, group1_junction_b, group1_PSI, group2_junction_a, group2_junction_b, group2_PSI]
+    ]
 
     if result_df.shape[0] != 0:
 
@@ -1571,6 +1608,16 @@ def diff_five_three(df, group_list, FDR, dPSI) -> pd.DataFrame:
 
         result_df.loc[result_df["q"] == 0, "q"] = 1e-323
 
+    # Rename columns
+    result_df = result_df.rename(columns = {
+        group1 + "_junction_a": "ref_junction_a",
+        group1 + "_junction_b": "ref_junction_b",
+        group1 + "_PSI": "ref_PSI",
+        group2 + "_junction_a": "alt_junction_a",
+        group2 + "_junction_b": "alt_junction_b",
+        group2 + "_PSI": "alt_PSI"
+    })
+
     return(result_df)
 
 
@@ -1597,16 +1644,22 @@ def diff_mxe(df, group_list, FDR, dPSI) -> pd.DataFrame:
     group1 = group_list[0]
     group2 = group_list[1]
 
-    group1_junction_a1 = "ref_junction_a1"
-    group1_junction_a2 = "ref_junction_a2"
-    group1_junction_b1 = "ref_junction_b1"
-    group1_junction_b2 = "ref_junction_b2"
-    group1_PSI = "ref_PSI"
-    group2_junction_a1 = "alt_junction_a1"
-    group2_junction_a2 = "alt_junction_a2"
-    group2_junction_b1 = "alt_junction_b1"
-    group2_junction_b2 = "alt_junction_b2"
-    group2_PSI = "alt_PSI"
+    group1_junction_a1 = group1 + "_junction_a1"
+    group1_junction_a2 = group1 + "_junction_a2"
+    group1_junction_b1 = group1 + "_junction_b1"
+    group1_junction_b2 = group1 + "_junction_b2"
+    group1_PSI = group1 + "_PSI"
+    group2_junction_a1 = group2 + "_junction_a1"
+    group2_junction_a2 = group2 + "_junction_a2"
+    group2_junction_b1 = group2 + "_junction_b1"
+    group2_junction_b2 = group2 + "_junction_b2"
+    group2_PSI = group2 + "_PSI"
+
+    # Keep columns of junctions and PSI of the two groups
+    result_df = result_df[
+        ["event_id", "pos_id", "exon_a", "exon_b", "intron_a1", "intron_a2", "intron_b1", "intron_b2", "strand", "gene_id", "gene_name", "label"] + \
+        [group1_junction_a1, group1_junction_a2, group1_junction_b1, group1_junction_b2, group1_PSI, group2_junction_a1, group2_junction_a2, group2_junction_b1, group2_junction_b2, group2_PSI]
+    ]
 
     if result_df.shape[0] != 0:
 
@@ -1704,6 +1757,20 @@ def diff_mxe(df, group_list, FDR, dPSI) -> pd.DataFrame:
 
         result_df.loc[result_df["q"] == 0, "q"] = 1e-323
 
+    # Rename columns
+    result_df = result_df.rename(columns = {
+        group1 + "_junction_a1": "ref_junction_a1",
+        group1 + "_junction_a2": "ref_junction_a2",
+        group1 + "_junction_b1": "ref_junction_b1",
+        group1 + "_junction_b2": "ref_junction_b2",
+        group1 + "_PSI": "ref_PSI",
+        group2 + "_junction_a1": "alt_junction_a1",
+        group2 + "_junction_a2": "alt_junction_a2",
+        group2 + "_junction_b1": "alt_junction_b1",
+        group2 + "_junction_b2": "alt_junction_b2",
+        group2 + "_PSI": "alt_PSI"
+    })
+
     return(result_df)
 
 
@@ -1730,14 +1797,20 @@ def diff_ri(df, group_list, FDR, dPSI) -> pd.DataFrame:
     group1 = group_list[0]
     group2 = group_list[1]
 
-    group1_junction_a = "ref_junction_a"
-    group1_junction_a_start = "ref_junction_a_start"
-    group1_junction_a_end = "ref_junction_a_end"
-    group1_PSI = "ref_PSI"
-    group2_junction_a = "alt_junction_a"
-    group2_junction_a_start = "alt_junction_a_start"
-    group2_junction_a_end = "alt_junction_a_end"
-    group2_PSI = "alt_PSI"
+    group1_junction_a = group1 + "_junction_a"
+    group1_junction_a_start = group1 + "_junction_a_start"
+    group1_junction_a_end = group1 + "_junction_a_end"
+    group1_PSI = group1 + "_PSI"
+    group2_junction_a = group2 + "_junction_a"
+    group2_junction_a_start = group2 + "_junction_a_start"
+    group2_junction_a_end = group2 + "_junction_a_end"
+    group2_PSI = group2 + "_PSI"
+
+    # Keep columns of junctions and PSI of the two groups
+    result_df = result_df[
+        ["event_id", "pos_id", "exon_a", "exon_b", "exon_c", "intron_a", "strand", "gene_id", "gene_name", "label"] + \
+        [group1_junction_a, group1_junction_a_start, group1_junction_a_end, group1_PSI, group2_junction_a, group2_junction_a_start, group2_junction_a_end, group2_PSI]
+    ]
 
     if result_df.shape[0] != 0:
 
@@ -1812,6 +1885,18 @@ def diff_ri(df, group_list, FDR, dPSI) -> pd.DataFrame:
         ] = "No"
 
         result_df.loc[result_df["q"] == 0, "q"] = 1e-323
+
+    # Rename columns
+    result_df = result_df.rename(columns = {
+        group1 + "_junction_a": "ref_junction_a",
+        group1 + "_junction_a_start": "ref_junction_a_start",
+        group1 + "_junction_a_end": "ref_junction_a_end",
+        group1 + "_PSI": "ref_PSI",
+        group2 + "_junction_a": "alt_junction_a",
+        group2 + "_junction_a_start": "alt_junction_a_start",
+        group2 + "_junction_a_end": "alt_junction_a_end",
+        group2 + "_PSI": "alt_PSI"
+    })
 
     return(result_df)
 
@@ -2006,8 +2091,6 @@ def diff_event(event_for_analysis_df, psi_table_df, junc_dict_all, group_df, gro
         if "q" in output_df.columns:
 
             output_df = output_df.sort_values(["Diff events", "q"], ascending = [False, True])
-
-        output_df = output_df.drop(columns = ["level_0"])
 
     return(output_df)
 

@@ -90,8 +90,8 @@ def main():
         print("Groups: " + str(group_list), file = sys.stdout)
         # Get sample list for each group
         if onlypsi_group == False:
-            sample_list = shibalib.sample_in_group_list(group_df, group_list)
-        # print("Samples: " + str(sample_list), file = sys.stdout)
+            sample_list_diff = shibalib.sample_in_group_list(group_df, group_list)
+        # print("Samples: " + str(sample_list_diff), file = sys.stdout)
         # Sum read count for each group
         junc_group_df = shibalib.sum_reads(onlypsi_group, junc_df, group_df, group_list)
         # print("Sum read count for each group" + str(junc_group_df), file = sys.stdout)
@@ -152,7 +152,7 @@ def main():
 
         SE_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
-            group_df, group_list, sample_list,
+            group_df, [reference, alternative], sample_list_diff,
             shibalib.diff_se, shibalib.se_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
@@ -210,7 +210,7 @@ def main():
 
         FIVE_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
-            group_df, group_list, sample_list,
+            group_df, [reference, alternative], sample_list_diff,
             shibalib.diff_five_three, shibalib.five_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
@@ -266,7 +266,7 @@ def main():
 
         THREE_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
-            group_df, group_list, sample_list,
+            group_df, [reference, alternative], sample_list_diff,
             shibalib.diff_five_three, shibalib.three_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
@@ -322,7 +322,7 @@ def main():
 
         MXE_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
-            group_df, group_list, sample_list,
+            group_df, [reference, alternative], sample_list_diff,
             shibalib.diff_mxe, shibalib.mxe_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
@@ -378,7 +378,7 @@ def main():
 
         RI_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
-            group_df, group_list, sample_list,
+            group_df, [reference, alternative], sample_list_diff,
             shibalib.diff_ri, shibalib.ri_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
