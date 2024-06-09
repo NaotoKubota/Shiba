@@ -52,15 +52,12 @@ def main():
     onlypsi_group = args.onlypsi_group
     excel = args.excel
 
-    # start_time = time.time()  # Time
-
     # Load modules
     import sys
     import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
     sys.path.append(parent_dir)
-    import time
     import pandas as pd
     from lib import shibalib
 
@@ -101,11 +98,8 @@ def main():
     # Set of junctions
     junc_set = shibalib.make_junc_set(junc_df)
 
-    # print("Load files: " + str(time.time() - start_time), file = sys.stdout)
-
     ################################################################################
     # Skipped exon
-    # start_time = time.time()  # Time
     print("PSI for each skipped exon....", file = sys.stdout)
 
     event_for_analysis_df = shibalib.event_for_analysis_se(event_df_dict["SE"], junc_set)
@@ -159,8 +153,6 @@ def main():
 
         SE_nodiff_sample_df, output_mtx_SE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
         SE_nodiff_group_df, output_mtx_SE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
-
-    # print("Skipped exon: " + str(time.time() - start_time), file = sys.stdout)
 
     ################################################################################
     # Alternative five ss

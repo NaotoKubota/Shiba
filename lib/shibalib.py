@@ -181,21 +181,6 @@ def set_group(group_df, onlypsi_group, reference, alternative) -> list:
 
     group_list = sorted(group_df['group'].unique().tolist())
 
-    # if onlypsi_group == False:
-
-    #     if reference and alternative:
-
-    #         group_list = [reference, alternative]
-
-    #     elif reference:
-
-    #         group_list.remove(reference)
-    #         group_list = [reference, group_list[0]]
-
-    #     else:
-
-    #         group_list = [group_list[0], group_list[1]]
-
     return(group_list)
 
 
@@ -252,38 +237,6 @@ def sum_reads(onlypsi_group, junc_df, group_df, group_list) -> pd.DataFrame:
     - pd.DataFrame: A pandas DataFrame containing the sum of reads for each junction.
     """
 
-    # if onlypsi_group == False:
-
-    #     group1 = group_list[0]
-    #     group2 = group_list[1]
-
-    #     sample_group1 = list(group_df[group_df['group'] == group1]["sample"])
-    #     sample_group2 = list(group_df[group_df['group'] == group2]["sample"])
-
-    #     # Melt dataframe
-    #     junc_df = pd.melt(
-
-    #         junc_df,
-    #         id_vars = ["ID"],
-    #         value_vars = sample_group1 + sample_group2,
-    #         var_name = "sample",
-    #         value_name = "reads"
-
-    #     )
-
-    # else:
-
-    #     # Melt dataframe
-    #     junc_df = pd.melt(
-
-    #         junc_df,
-    #         id_vars = ["ID"],
-    #         value_vars = group_df["sample"].tolist(),
-    #         var_name = "sample",
-    #         value_name = "reads"
-
-    #     )
-
     # Melt dataframe
     junc_df = pd.melt(
 
@@ -319,14 +272,6 @@ def sum_reads(onlypsi_group, junc_df, group_df, group_list) -> pd.DataFrame:
     junc_df['chr'] = "chr" + junc_df['ID'].str.split(":", expand = True)[0]
     junc_df['start'] = junc_df['ID'].str.split(":", expand = True)[1].str.split("-", expand = True)[0]
     junc_df['end'] = junc_df['ID'].str.split(":", expand = True)[1].str.split("-", expand = True)[1]
-    # if onlypsi_group == False:
-
-    #     col = ["chr", "start", "end", "ID", group1, group2]
-
-    # else:
-
-    #     col = ["chr", "start", "end", "ID"] + group_list
-
     col = ["chr", "start", "end", "ID"] + group_list
 
     junc_df = junc_df[col]
@@ -524,10 +469,6 @@ def col_se(sample_id, group_or_not) -> list:
 
     col = []
 
-    # if group_or_not:
-
-    #     sample_id = ["ref", "alt"]
-
     for i in sample_id:
 
         col += [i + "_junction_a", i + "_junction_b", i + "_junction_c", i + "_PSI"]
@@ -717,10 +658,6 @@ def col_five_three(sample_id, group_or_not) -> list:
     """
 
     col = []
-
-    # if group_or_not:
-
-    #     sample_id = ["ref", "alt"]
 
     for i in sample_id:
 
@@ -1025,10 +962,6 @@ def col_mxe(sample_id, group_or_not) -> list:
 
     col = []
 
-    # if group_or_not:
-
-    #     sample_id = ["ref", "alt"]
-
     for i in sample_id:
 
         col += [i + "_junction_a1", i + "_junction_a2", i + "_junction_b1", i + "_junction_b2", i + "_PSI"]
@@ -1215,10 +1148,6 @@ def col_ri(sample_id, group_or_not) -> list:
     """
 
     col = []
-
-    # if group_or_not:
-
-    #     sample_id = ["ref", "alt"]
 
     for i in sample_id:
 
