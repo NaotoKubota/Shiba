@@ -276,15 +276,15 @@ echo -e "
 
 if [ "${SKIP_STEP4}" == false ]; then
 
-    if [ "${ONLY_PSI}" == true ]; then
+    if [ "${ONLY_PSI_GROUP}" == true ]; then
 
-        STEP4_COMMAND_1="python ${SRC_PATH}/src/psi.py -p 1 --onlypsi -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+        STEP4_COMMAND_1="python ${SRC_PATH}/src/psi.py -p 1 --onlypsi-group -g ${EXPERIMENT_TABLE_ABSPATH} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
         echo -e ${STEP4_COMMAND_1}
         ${STEP4_COMMAND_1}
 
-    elif [ "${ONLY_PSI_GROUP}" == true ]; then
+    elif [ "${ONLY_PSI}" == true ]; then
 
-        STEP4_COMMAND_2="python ${SRC_PATH}/src/psi.py -p 1 --onlypsi-group -g ${EXPERIMENT_TABLE_ABSPATH} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+        STEP4_COMMAND_2="python ${SRC_PATH}/src/psi.py -p 1 --onlypsi -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
         echo -e ${STEP4_COMMAND_2}
         ${STEP4_COMMAND_2}
 
