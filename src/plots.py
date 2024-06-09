@@ -116,7 +116,8 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	fig.update_layout(
 		width = 550,
-		height = 400
+		height = 400,
+		font_family = "Arial"
 	)
 
 	fig.write_html(output_dir + "/data/volcano_" + AS + ".html")
@@ -183,7 +184,8 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	fig.update_layout(
 		width = 550,
-		height= 400
+		height= 400,
+		font_family = "Arial"
 	)
 
 	fig.write_html(output_dir + "/data/scatter_" + AS + ".html")
@@ -242,7 +244,8 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	fig.update_layout(
 		width = 550,
-		height = 400
+		height = 400,
+		font_family = "Arial"
 	)
 
 	fig.write_html(output_dir + "/data/bar_" + AS + ".html")
