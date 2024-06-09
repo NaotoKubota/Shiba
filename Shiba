@@ -371,47 +371,13 @@ timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
 
 echo -e "Step4 execution time: ${timestamp}"
 
-## Step5: plots.py
+## Step5: expression.sh
 echo -e "
 ----------------------------
-      Step5: plots.py
+    Step5: expression.sh
 ----------------------------
 "
-if [ "${ONLY_PSI}" == false ]; then
-
-    if [ "${SKIP_STEP5}" == false ]; then
-
-        STEP5_COMMAND="python ${SRC_PATH}/src/plots.py ${OUTPUT}/results/splicing ${OUTPUT}/plots"
-        echo -e ${STEP5_COMMAND}
-        ${STEP5_COMMAND}
-
-    else
-
-        echo -e "Skipped."
-
-    fi
-
-else
-
-    echo -e "Skipped."
-
-fi
-
-i_five=$((${SECONDS} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
-sec=$((i_five % 60))
-min=$(((i_five % 3600) / 60))
-hrs=$((i_five / 3600))
-timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
-
-echo -e "Step5 execution time: ${timestamp}"
-
-## Step6: expression.sh
-echo -e "
-----------------------------
-    Step6: expression.sh
-----------------------------
-"
-if [ "${SKIP_STEP6}" == false ]; then
+if [ "${SKIP_STEP5}" == false ]; then
 
     # Check if the variables are set
     if [ -z ${ONLY_PSI} ]; then
@@ -430,13 +396,50 @@ if [ "${SKIP_STEP6}" == false ]; then
             exit 1
         fi
 
-        STEP6_COMMAND_1="bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -p ${NUM_PROCESS}"
+        STEP5_COMMAND_1="bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -p ${NUM_PROCESS}"
+        echo -e ${STEP5_COMMAND_1}
+        ${STEP5_COMMAND_1}
+
+    else
+
+        STEP5_COMMAND_2="bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -p ${NUM_PROCESS}"
+        echo -e ${STEP5_COMMAND_2}
+        ${STEP5_COMMAND_2}
+
+    fi
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_five=$((${SECONDS} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
+sec=$((i_five % 60))
+min=$(((i_five % 3600) / 60))
+hrs=$((i_five / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step5 execution time: ${timestamp}"
+
+## Step6: pca.py
+echo -e "
+----------------------------
+    Step6: pca.py
+----------------------------
+"
+
+if [ "${SKIP_STEP6}" == false ]; then
+
+    if [ "${ONLY_PSI_GROUP}" == true ]; then
+
+        STEP6_COMMAND_1="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_group.txt -g 3000 -o ${OUTPUT}/results/pca"
         echo -e ${STEP6_COMMAND_1}
         ${STEP6_COMMAND_1}
 
     else
 
-        STEP6_COMMAND_2="bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -p ${NUM_PROCESS}"
+        STEP6_COMMAND_2="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_sample.txt -g 3000 -o ${OUTPUT}/results/pca"
         echo -e ${STEP6_COMMAND_2}
         ${STEP6_COMMAND_2}
 
@@ -456,26 +459,23 @@ timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
 
 echo -e "Step6 execution time: ${timestamp}"
 
-## Step7: pca.py
+## Step7: plots.py
 echo -e "
 ----------------------------
-       Step7: pca.py
+    Step7: plots.py
 ----------------------------
 "
+if [ "${ONLY_PSI}" == false ]; then
 
-if [ "${SKIP_STEP7}" == false ]; then
+    if [ "${SKIP_STEP7}" == false ]; then
 
-    if [ "${ONLY_PSI_GROUP}" == true ]; then
-
-        STEP7_COMMAND_1="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_group.txt -g 3000 -o ${OUTPUT}/results/pca"
-        echo -e ${STEP7_COMMAND_1}
-        ${STEP7_COMMAND_1}
+        STEP7_COMMAND="python ${SRC_PATH}/src/plots.py ${OUTPUT}/results/splicing ${OUTPUT}/plots"
+        echo -e ${STEP7_COMMAND}
+        ${STEP7_COMMAND}
 
     else
 
-        STEP7_COMMAND_2="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_sample.txt -g 3000 -o ${OUTPUT}/results/pca"
-        echo -e ${STEP7_COMMAND_2}
-        ${STEP7_COMMAND_2}
+        echo -e "Skipped."
 
     fi
 

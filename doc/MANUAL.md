@@ -105,9 +105,9 @@ SKIP_STEP1=false # bam2gtf.sh
 SKIP_STEP2=false # gtf2event.py
 SKIP_STEP3=false # bam2junc.sh
 SKIP_STEP4=false # psi.py
-SKIP_STEP5=false # plots.py
-SKIP_STEP6=false # expression.sh
-SKIP_STEP7=false # pca.py
+SKIP_STEP5=false # expression.sh
+SKIP_STEP6=false # pca.py
+SKIP_STEP7=false # plots.py
 ```
 
 You can skip some steps by setting `SKIP_STEP*` to `true`.
@@ -441,24 +441,7 @@ options:
   --excel               Make result files in excel format (default: False)
 ```
 
-#### Step5: `plots.py`
-
-Make plots.
-
-```bash
-usage: plots.py [-h] input output
-
-Make plots for alternative splicing events
-
-positional arguments:
-  input       Directory that contains result files
-  output      Directory for output files
-
-options:
-  -h, --help  show this help message and exit
-```
-
-#### Step6: `expression.sh`
+#### Step5: `expression.sh`
 
 Gene expression analysis.
 
@@ -474,7 +457,7 @@ Usage: expression.sh -i experiment.txt -g reference_annotation.gtf -o output_dir
     -p  Number of processors to use (default: 1)
 ```
 
-#### Step7: `pca.py`
+#### Step6: `pca.py`
 
 Principal component analysis.
 
@@ -495,6 +478,22 @@ options:
                         Output directory (default: None)
 ```
 
+#### Step7: `plots.py`
+
+Make plots.
+
+```bash
+usage: plots.py [-h] input output
+
+Make plots for alternative splicing events
+
+positional arguments:
+  input       Directory that contains result files
+  output      Directory for output files
+
+options:
+  -h, --help  show this help message and exit
+```
 
 </details>
 
