@@ -465,9 +465,19 @@ echo -e "
 
 if [ "${SKIP_STEP7}" == false ]; then
 
-    STEP7_COMMAND="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt -g 3000 -o ${OUTPUT}/results/pca"
-    echo -e ${STEP7_COMMAND}
-    ${STEP7_COMMAND}
+    if [ "${ONLY_PSI_GROUP}" == true ]; then
+
+        STEP7_COMMAND_1="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_group.txt -g 3000 -o ${OUTPUT}/results/pca"
+        echo -e ${STEP7_COMMAND_1}
+        ${STEP7_COMMAND_1}
+
+    else
+
+        STEP7_COMMAND_2="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_sample.txt -g 3000 -o ${OUTPUT}/results/pca"
+        echo -e ${STEP7_COMMAND_2}
+        ${STEP7_COMMAND_2}
+
+    fi
 
 else
 
