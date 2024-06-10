@@ -223,26 +223,6 @@ rule psi:
         {output.results} >& {log}
         """
 
-rule plots:
-    input:
-        "results"
-    output:
-        plots = directory("plots"),
-        summary = "plots/summary.html"
-    benchmark:
-        "benchmark/plots.txt"
-    log:
-        "log/plots.log"
-    params:
-        base_dir = base_dir
-    shell:
-        """
-        python {params.base_dir}/src/plots.py \
-        -i {input} \
-        -e {config[experiment_table]} \
-        -o {output.plots} >& {log}
-        """
-
 rule expression_featureCounts:
     wildcard_constraints:
         sample = "|".join(experiment_dict)
@@ -333,4 +313,29 @@ rule pca:
         -g 3000 \
         -o results/pca \
         &> {log}
+        """
+
+rule plots:
+    input:
+        results = "results",
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        tpm_pca = "results/pca/tpm_pca.tsv",
+        tpm_contribution = "results/pca/tpm_contribution.tsv",
+        psi_pca = "results/pca/psi_pca.tsv",
+        psi_contribution = "results/pca/psi_contribution.tsv"
+    output:
+        plots = directory("plots"),
+        summary = "plots/summary.html"
+    benchmark:
+        "benchmark/plots.txt"
+    log:
+        "log/plots.log"
+    params:
+        base_dir = base_dir
+    shell:
+        """
+        python {params.base_dir}/src/plots.py \
+        -i {input.results} \
+        -e {config[experiment_table]} \
+        -o {output.plots} >& {log}
         """
