@@ -483,16 +483,18 @@ options:
 Make plots.
 
 ```bash
-usage: plots.py [-h] input output
+usage: plots.py [-h] [-i INPUT] [-e EXPERIMENT_TABLE] [-o OUTPUT]
 
 Make plots for alternative splicing events
 
-positional arguments:
-  input       Directory that contains result files
-  output      Directory for output files
-
 options:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Directory that contains result files (default: None)
+  -e EXPERIMENT_TABLE, --experiment-table EXPERIMENT_TABLE
+                        Experiment table file (default: None)
+  -o OUTPUT, --output OUTPUT
+                        Directory for output files (default: None)
 ```
 
 </details>
