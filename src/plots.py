@@ -119,7 +119,10 @@ def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contributi
 	fig.update_layout(
 		width = 550,
 		height = 400,
-		font_family = "Arial",
+		font ={
+			"family": "Arial",
+			"size": 18
+		},
 		xaxis_title = "PC1 ({}%)".format(contribution_PC1),
 		yaxis_title = "PC2 ({}%)".format(contribution_PC2),
 		legend_title = "Group",
@@ -222,7 +225,11 @@ def plots(AS: str, input_dir: str, output_dir: str):
 	fig.update_layout(
 		width = 550,
 		height = 400,
-		font_family = "Arial",
+		font ={
+			"family": "Arial",
+			"size": 16
+		},
+		legend_title = "Group, Label",
 	)
 
 	fig.write_html(output_dir + "/data/volcano_" + AS + ".html")
@@ -290,7 +297,13 @@ def plots(AS: str, input_dir: str, output_dir: str):
 	fig.update_layout(
 		width = 550,
 		height= 400,
-		font_family = "Arial",
+		font ={
+			"family": "Arial",
+			"size": 16
+		},
+		xaxis_title = "PSI (Reference)",
+		yaxis_title = "PSI (Alternative)",
+		legend_title = "Group, Label",
 	)
 
 	fig.write_html(output_dir + "/data/scatter_" + AS + ".html")
@@ -310,7 +323,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			barmode = "relative"
 		)
 
-		fig.update_layout(title=dict(text = "Number of events",
+		fig.update_layout(title=dict(text = "Number of DSEs",
 										font=dict(size=26,
 												color='black'),
 										xref='paper',
@@ -350,7 +363,12 @@ def plots(AS: str, input_dir: str, output_dir: str):
 	fig.update_layout(
 		width = 550,
 		height = 400,
-		font_family = "Arial",
+		font ={
+			"family": "Arial",
+			"size": 16
+		},
+		xaxis_title = None,
+		legend_title = "Group, Label",
 	)
 
 	fig.write_html(output_dir + "/data/bar_" + AS + ".html")
@@ -395,8 +413,8 @@ def write_summary_html(output_dir: str):
 	</head>
 	<body>
 
-		<font size="7">Shiba results summary</font>
-		<p><font size="5">Principal component analysis</font></p>
+		<font size="10">Shiba results summary</font>
+		<p><font size="6">Principal component analysis (PCA)</font></p>
 		<TABLE WIDTH="1200" CELLSPACING="0" CELLPADDING="0">
 
 			<TR>
@@ -430,7 +448,7 @@ def write_summary_html(output_dir: str):
 
 		</TABLE>
 
-		<p><font size="5">Skipped exon</font></p>
+		<p><font size="6">Skipped exon</font></p>
 		<TABLE WIDTH="1800" CELLSPACING="0" CELLPADDING="0">
 
 			<TR>
@@ -477,7 +495,7 @@ def write_summary_html(output_dir: str):
 
 		</TABLE>
 
-		<p><font size="5">Alternative 5'ss</font></p>
+		<p><font size="6">Alternative 5'ss</font></p>
 		<TABLE WIDTH="1800" CELLSPACING="0" CELLPADDING="0">
 
 			<TR>
@@ -524,7 +542,7 @@ def write_summary_html(output_dir: str):
 
 		</TABLE>
 
-		<p><font size="5">Alternative 3'ss</font></p>
+		<p><font size="6">Alternative 3'ss</font></p>
 		<TABLE WIDTH="1800" CELLSPACING="0" CELLPADDING="0">
 
 			<TR>
@@ -571,7 +589,7 @@ def write_summary_html(output_dir: str):
 
 		</TABLE>
 
-		<p><font size="5">Mutually exclusive exons</font></p>
+		<p><font size="6">Mutually exclusive exons</font></p>
 		<TABLE WIDTH="1800" CELLSPACING="0" CELLPADDING="0">
 
 			<TR>
@@ -618,7 +636,7 @@ def write_summary_html(output_dir: str):
 
 		</TABLE>
 
-		<p><font size="5">Retained intron</font></p>
+		<p><font size="6">Retained intron</font></p>
 		<TABLE WIDTH="1800" CELLSPACING="0" CELLPADDING="0">
 
 			<TR>
