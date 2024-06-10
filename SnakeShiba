@@ -24,7 +24,7 @@ base_dir = os.path.dirname(workflow.snakefile)
 rule all:
     input:
         PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
-        plots = "plots/summary.html",
+        summary = "plots/summary.html",
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
         counts = "results/expression/counts.txt",
@@ -317,14 +317,12 @@ rule pca:
 
 rule plots:
     input:
-        results = "results",
         PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
         tpm_pca = "results/pca/tpm_pca.tsv",
         tpm_contribution = "results/pca/tpm_contribution.tsv",
         psi_pca = "results/pca/psi_pca.tsv",
         psi_contribution = "results/pca/psi_contribution.tsv"
     output:
-        plots = directory("plots"),
         summary = "plots/summary.html"
     benchmark:
         "benchmark/plots.txt"
@@ -335,7 +333,7 @@ rule plots:
     shell:
         """
         python {params.base_dir}/src/plots.py \
-        -i {input.results} \
+        -i results \
         -e {config[experiment_table]} \
-        -o {output.plots} >& {log}
+        -o plots >& {log}
         """
