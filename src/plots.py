@@ -9,18 +9,123 @@ import plotly.express as px
 
 def get_args():
 
-    parser = argparse.ArgumentParser(
-        formatter_class = argparse.ArgumentDefaultsHelpFormatter,
-        description = "Make plots for alternative splicing events"
-    )
+	parser = argparse.ArgumentParser(
+		formatter_class = argparse.ArgumentDefaultsHelpFormatter,
+		description = "Make plots for alternative splicing events"
+	)
 
-    parser.add_argument("input", type = str, help = "Directory that contains result files")
-    parser.add_argument("output", type = str, help = "Directory for output files")
+	parser.add_argument("-i", "--input", type = str, help = "Directory that contains result files")
+	parser.add_argument("-e", "--experiment-table", type = str, help = "Experiment table file")
+	parser.add_argument("-o", "--output", type = str, help = "Directory for output files")
 
-    args = parser.parse_args()
+	args = parser.parse_args()
 
-    return(args)
+	return(args)
 
+def load_experiment_table(experiment_table: str):
+
+	# Load experiment table
+	experiment_table_df = pd.read_csv(
+
+		experiment_table,
+		sep = "\t",
+		usecols = ["sample", "group"]
+
+	)
+
+	return experiment_table_df
+
+def load_tpm_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output_dir: str):
+
+	# Load PCA matrix for TPM
+	pca_tpm_df = pd.read_csv(
+
+		input_dir + "/pca/tpm_pca.tsv",
+		sep = "\t"
+
+	)
+	pca_tpm_df = pca_tpm_df.rename(columns = {"Unnamed: 0": "sample"})
+	pca_tpm_df = pd.merge(pca_tpm_df, experiment_table_df, on = "sample")
+	pca_tpm_df = pca_tpm_df.sort_values("group")
+	# Load contribution table for TPM
+	contribution_tpm_df = pd.read_csv(
+
+		input_dir + "/pca/tpm_contribution.tsv",
+		sep = "\t",
+		names = ["PC", "contribution"]
+
+	)
+	contribution_tpm_PC1 = str((contribution_tpm_df.iloc[0][1]*100).round(2))
+	contribution_tpm_PC2 = str((contribution_tpm_df.iloc[1][1]*100).round(2))
+
+	return pca_tpm_df, contribution_tpm_PC1, contribution_tpm_PC2
+
+def load_psi_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output_dir: str):
+
+	# Load PCA matrix for PSI
+	pca_psi_df = pd.read_csv(
+
+		input_dir + "/pca/psi_pca.tsv",
+		sep = "\t"
+
+	)
+	pca_psi_df = pca_psi_df.rename(columns = {"Unnamed: 0": "sample"})
+	pca_psi_df = pd.merge(pca_psi_df, experiment_table_df, on = "sample")
+	pca_psi_df = pca_psi_df.sort_values("group")
+	# Load contribution table for PSI
+	contribution_psi_df = pd.read_csv(
+
+		input_dir + "/pca/psi_contribution.tsv",
+		sep = "\t",
+		names = ["PC", "contribution"]
+
+	)
+	contribution_psi_PC1 = str((contribution_psi_df.iloc[0][1]*100).round(2))
+	contribution_psi_PC2 = str((contribution_psi_df.iloc[1][1]*100).round(2))
+
+	return pca_psi_df, contribution_psi_PC1, contribution_psi_PC2
+
+def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contribution_PC2: str, output_dir: str):
+
+	fig = px.scatter(
+
+		pca_df,
+		x = "PC1",
+		y = "PC2",
+		color = "group",
+		opacity = 0.5,
+		hover_data = ["sample"]
+
+	)
+
+	fig.update_traces(
+		marker = dict(
+			size = 8,
+			line = dict(width = 0, color = 'DarkSlateGrey')),
+			selector = dict(mode = 'markers')
+	)
+
+	fig.update_layout(
+		title = dict(
+			text = "PCA for " + name,
+			font = dict(size = 26, color = 'black'),
+			xref = 'paper',
+			x = 0.5,
+			y = 0.95,
+			xanchor = 'center',
+		)
+	)
+
+	fig.update_layout(
+		width = 550,
+		height = 400,
+		font_family = "Arial",
+		xaxis_title = "PC1 ({}%)".format(contribution_PC1),
+		yaxis_title = "PC2 ({}%)".format(contribution_PC2),
+		legend_title = "Group",
+	)
+
+	fig.write_html(output_dir + "/data/pca_" + name + ".html")
 
 def plots(AS: str, input_dir: str, output_dir: str):
 
@@ -116,7 +221,8 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	fig.update_layout(
 		width = 550,
-		height = 400
+		height = 400,
+		font_family = "Arial",
 	)
 
 	fig.write_html(output_dir + "/data/volcano_" + AS + ".html")
@@ -183,7 +289,8 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	fig.update_layout(
 		width = 550,
-		height= 400
+		height= 400,
+		font_family = "Arial",
 	)
 
 	fig.write_html(output_dir + "/data/scatter_" + AS + ".html")
@@ -242,13 +349,26 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	fig.update_layout(
 		width = 550,
-		height = 400
+		height = 400,
+		font_family = "Arial",
 	)
 
 	fig.write_html(output_dir + "/data/bar_" + AS + ".html")
 
 def write_summary_html(output_dir: str):
 
+	# PCA
+	lines_strip_pca_dict = {}
+	for pca in ["TPM", "PSI"]:
+
+		with open(output_dir + "/data/pca_" + pca + ".html", 'r') as f:
+
+			lines = f.readlines()
+
+		lines_strip = [line.strip() for line in lines[3:12]]
+		lines_strip_pca_dict[pca] = lines_strip
+
+	# Splicing events
 	events = ["SE", "FIVE", "THREE", "MXE", "RI"]
 	plottypes = ["volcano", "scatter", "bar"]
 	lines_strip_dict = {}
@@ -276,6 +396,40 @@ def write_summary_html(output_dir: str):
 	<body>
 
 		<font size="7">Shiba results summary</font>
+		<p><font size="5">Principal component analysis</font></p>
+		<TABLE WIDTH="1200" CELLSPACING="0" CELLPADDING="0">
+
+			<TR>
+			<TD WIDTH="600">
+
+				{pca_tpm_l1}
+				{pca_tpm_l2}
+				{pca_tpm_l3}
+				{pca_tpm_l4}
+				{pca_tpm_l5}
+				{pca_tpm_l6}
+				{pca_tpm_l7}
+				{pca_tpm_l8}
+				{pca_tpm_l9}
+
+			</TD>
+			<TD WIDTH="600">
+
+				{pca_psi_l1}
+				{pca_psi_l2}
+				{pca_psi_l3}
+				{pca_psi_l4}
+				{pca_psi_l5}
+				{pca_psi_l6}
+				{pca_psi_l7}
+				{pca_psi_l8}
+				{pca_psi_l9}
+
+			</TD>
+			</TR>
+
+		</TABLE>
+
 		<p><font size="5">Skipped exon</font></p>
 		<TABLE WIDTH="1800" CELLSPACING="0" CELLPADDING="0">
 
@@ -514,6 +668,24 @@ def write_summary_html(output_dir: str):
 	</body>
 	</html>
 	'''.format(
+		pca_tpm_l1 = lines_strip_pca_dict["TPM"][0],
+		pca_tpm_l2 = lines_strip_pca_dict["TPM"][1],
+		pca_tpm_l3 = lines_strip_pca_dict["TPM"][2],
+		pca_tpm_l4 = lines_strip_pca_dict["TPM"][3],
+		pca_tpm_l5 = lines_strip_pca_dict["TPM"][4],
+		pca_tpm_l6 = lines_strip_pca_dict["TPM"][5],
+		pca_tpm_l7 = lines_strip_pca_dict["TPM"][6],
+		pca_tpm_l8 = lines_strip_pca_dict["TPM"][7],
+		pca_tpm_l9 = lines_strip_pca_dict["TPM"][8],
+		pca_psi_l1 = lines_strip_pca_dict["PSI"][0],
+		pca_psi_l2 = lines_strip_pca_dict["PSI"][1],
+		pca_psi_l3 = lines_strip_pca_dict["PSI"][2],
+		pca_psi_l4 = lines_strip_pca_dict["PSI"][3],
+		pca_psi_l5 = lines_strip_pca_dict["PSI"][4],
+		pca_psi_l6 = lines_strip_pca_dict["PSI"][5],
+		pca_psi_l7 = lines_strip_pca_dict["PSI"][6],
+		pca_psi_l8 = lines_strip_pca_dict["PSI"][7],
+		pca_psi_l9 = lines_strip_pca_dict["PSI"][8],
 		volcano_se_l1 = lines_strip_dict["SE"]["volcano"][0],
 		volcano_se_l2 = lines_strip_dict["SE"]["volcano"][1],
 		volcano_se_l3 = lines_strip_dict["SE"]["volcano"][2],
@@ -666,6 +838,14 @@ def main():
 	os.makedirs(output_dir + "/data", exist_ok = True)
 
 	print("Making plots....", file = sys.stdout)
+	# PCA
+	experiment_table_df = load_experiment_table(args.experiment_table)
+	# TPM
+	pca_tpm_df, contribution_tpm_PC1, contribution_tpm_PC2 = load_tpm_pca_table(input_dir, experiment_table_df, output_dir)
+	plots_pca("TPM", pca_tpm_df, contribution_tpm_PC1, contribution_tpm_PC2, output_dir)
+	# PSI
+	pca_psi_df, contribution_psi_PC1, contribution_psi_PC2 = load_psi_pca_table(input_dir, experiment_table_df, output_dir)
+	plots_pca("PSI", pca_psi_df, contribution_psi_PC1, contribution_psi_PC2, output_dir)
 
 	AS_list = ["SE", "FIVE", "THREE", "MXE", "RI"]
 

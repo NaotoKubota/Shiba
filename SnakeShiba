@@ -238,8 +238,9 @@ rule plots:
     shell:
         """
         python {params.base_dir}/src/plots.py \
-        {input} \
-        {output.plots} >& {log}
+        -i {input} \
+        -e {config[experiment_table]} \
+        -o {output.plots} >& {log}
         """
 
 rule expression_featureCounts:
