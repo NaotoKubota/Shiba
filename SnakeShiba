@@ -5,6 +5,11 @@ Usage:
     snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
+import os
+from pathlib import Path
+import sys
+args = sys.argv
+
 def load_experiment(file):
     experiment_dict = {}
     with open(file, "r") as f:
@@ -17,9 +22,18 @@ def load_experiment(file):
 experiment_dict = load_experiment(config["experiment_table"])
 juncfiles_list = []
 
+base_dir = os.path.dirname(workflow.snakefile)
+command = " ".join(args)
+# Replace snakefile path with the absolute path
+command = command.replace(workflow.snakefile, os.path.join(base_dir, workflow.snakefile))
+# Replace config yaml path with the absolute path
+configfile_path= args[args.index("--configfile") + 1]
+# Absolute path of the directory containing the config yaml file
+configfile_dir_path = Path(configfile_path).resolve().parent
+command = command.replace(configfile_path, os.path.join(str(configfile_dir_path), configfile_path))
+
 workdir: config["workdir"]
 container: config["container"]
-base_dir = os.path.dirname(workflow.snakefile)
 
 rule all:
     input:
@@ -329,11 +343,13 @@ rule plots:
     log:
         "log/plots.log"
     params:
-        base_dir = base_dir
+        base_dir = base_dir,
+        command = command
     shell:
         """
         python {params.base_dir}/src/plots.py \
         -i results \
         -e {config[experiment_table]} \
+        -s "{params.command}" \
         -o plots >& {log}
         """

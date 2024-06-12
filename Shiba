@@ -165,6 +165,11 @@ else
 
 fi
 
+# Get command line of this script
+COMMANDLINE=$(echo -e "$0 $@")
+# Replace experiment table path with the absolute path and config file path with the absolute path
+COMMANDLINE=$(echo -e "${COMMANDLINE}" | sed -e "s|${EXPERIMENT_TABLE}|${EXPERIMENT_TABLE_ABSPATH}|g" -e "s|${CONFIG}|${CONFIG_ABSPATH}|g")
+
 ## Step1: bam2gtf.sh
 echo -e "
 ----------------------------
@@ -469,9 +474,9 @@ if [ "${ONLY_PSI}" == false ]; then
 
     if [ "${SKIP_STEP7}" == false ]; then
 
-        STEP7_COMMAND="python ${SRC_PATH}/src/plots.py -i ${OUTPUT}/results -e ${EXPERIMENT_TABLE_ABSPATH} -o ${OUTPUT}/plots"
+        STEP7_COMMAND="python ${SRC_PATH}/src/plots.py -i ${OUTPUT}/results -e ${EXPERIMENT_TABLE_ABSPATH} -s "\"${COMMANDLINE}\"" -o ${OUTPUT}/plots"
         echo -e ${STEP7_COMMAND}
-        ${STEP7_COMMAND}
+        python ${SRC_PATH}/src/plots.py -i ${OUTPUT}/results -e ${EXPERIMENT_TABLE_ABSPATH} -s "${COMMANDLINE}" -o ${OUTPUT}/plots
 
     else
 
