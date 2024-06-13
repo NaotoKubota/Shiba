@@ -35,6 +35,11 @@ def load_experiment_table(experiment_table: str):
 
 	)
 
+	# Add a column of number for each group, starting from the first group to the last group
+	group_order = experiment_table_df["group"].unique().tolist()
+	group_order_dict = {group: i for i, group in enumerate(group_order)}
+	experiment_table_df["group_order"] = experiment_table_df["group"].map(group_order_dict)
+
 	return experiment_table_df
 
 def load_tpm_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output_dir: str):
@@ -48,7 +53,7 @@ def load_tpm_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output
 	)
 	pca_tpm_df = pca_tpm_df.rename(columns = {"Unnamed: 0": "sample"})
 	pca_tpm_df = pd.merge(pca_tpm_df, experiment_table_df, on = "sample")
-	pca_tpm_df = pca_tpm_df.sort_values("group")
+	pca_tpm_df = pca_tpm_df.sort_values("group_order")
 	# Load contribution table for TPM
 	contribution_tpm_df = pd.read_csv(
 
@@ -73,7 +78,7 @@ def load_psi_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output
 	)
 	pca_psi_df = pca_psi_df.rename(columns = {"Unnamed: 0": "sample"})
 	pca_psi_df = pd.merge(pca_psi_df, experiment_table_df, on = "sample")
-	pca_psi_df = pca_psi_df.sort_values("group")
+	pca_psi_df = pca_psi_df.sort_values("group_order")
 	# Load contribution table for PSI
 	contribution_psi_df = pd.read_csv(
 
@@ -93,13 +98,20 @@ def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contributi
 	pca_df["PC1"] = pca_df["PC1"].round(2)
 	pca_df["PC2"] = pca_df["PC2"].round(2)
 
+	# Color palette
+	number_of_groups = pca_df["group"].nunique()
+	if number_of_groups <= 8:
+		color_palette = px.colors.qualitative.G10
+	else:
+		color_palette = px.colors.sequential.Viridis
+
 	fig = px.scatter(
 
 		pca_df,
 		x = "PC1",
 		y = "PC2",
 		color = "group",
-		color_discrete_sequence=px.colors.qualitative.G10,
+		color_discrete_sequence = color_palette,
 		opacity = 0.5,
 		hover_data = ["sample"]
 
