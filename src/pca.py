@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import scipy.stats as stats
 from sklearn.decomposition import PCA
+from sklearn.impute import KNNImputer
 
 
 def get_args():
@@ -57,8 +58,18 @@ def load_psi_table(psi_file: str) -> pd.DataFrame:
 
     psi_df = pd.read_csv(psi_file, sep="\t", index_col=0)
     psi_df = psi_df.drop(columns = ["pos_id"])
-    # Drop rows with NaN
-    psi_df = psi_df.dropna()
+
+    # KNN imputation when psi_df has less than 6000 rows without NaN values
+    if psi_df.dropna().shape[0] < 6000:
+        print("Warning: PSI table has less than 6000 rows without NaN values. Performing KNN imputation...", file=sys.stderr)
+        psi_df = psi_df.dropna(axis=0, thresh=psi_df.shape[1]*0.5) # Drop rows with more than 50% NaN
+        print("Number of rows after dropping rows with more than 50% NaN: ", psi_df.shape[0], file=sys.stderr)
+        imputer = KNNImputer(n_neighbors=5)
+        psi_df = pd.DataFrame(imputer.fit_transform(psi_df), index=psi_df.index, columns=psi_df.columns)
+        print("KNN imputation done!", file=sys.stderr)
+    else:
+        # Drop rows with NaN
+        psi_df = psi_df.dropna()
 
     return psi_df
 
