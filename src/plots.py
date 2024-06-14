@@ -346,7 +346,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			color = "label",
 			labels = {"event_id": "Count"},
 			category_orders = {"group": ["up", "down"], "label": ["annotated", "unannotated"]},
-			color_discrete_sequence = ["#66c2a5", "#fc8d62"],
+			color_discrete_sequence = ["#9ebcda", "#810f7c"],
 			barmode = "relative"
 		)
 
