@@ -143,7 +143,7 @@ The output directory contains the following sub directories:
 #### Files in `results/splicing`
 
 - `PSI_*.txt`: Results of differential splicing analysis.
-- `PSI_matrix.txt`: PSI values for all samples or groups and events. Blank cells indicate that the event did not pass the minimum read count threshold.
+- `PSI_matrix_[sample,group].txt`: PSI values of each event for all samples or groups. Blank cells indicate that the event did not pass the minimum read count threshold.
 - `summary.txt`: Numbers of the differentially spliced events for each splicing and event type.
 
 <details>
@@ -473,7 +473,7 @@ options:
   --input-psi INPUT_PSI
                         Input PSI file (default: None)
   -g GENES, --genes GENES
-                        Number of highly-variable genes or splicing events to calculate PCs (default: None)
+                        Number of highly-variable genes or splicing events to calculate PCs (default: 3000)
   -o OUTPUT, --output OUTPUT
                         Output directory (default: None)
 ```
