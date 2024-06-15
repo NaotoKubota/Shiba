@@ -17,7 +17,7 @@ def get_args():
 
     parser.add_argument('--input-tpm', type=str, help='Input TPM file')
     parser.add_argument('--input-psi', type=str, help='Input PSI file')
-    parser.add_argument('-g', '--genes', type=int, help='Number of highly-variable genes or splicing events to calculate PCs')
+    parser.add_argument('-g', '--genes', type=int, help='Number of highly-variable genes or splicing events to calculate PCs', default=3000)
     parser.add_argument('-o', '--output', type=str, help='Output directory')
 
     args = parser.parse_args()
