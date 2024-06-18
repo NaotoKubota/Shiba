@@ -1,0 +1,42 @@
+workdir:
+  /path/to/workdir/output
+container:
+  docker://naotokubota/shiba:0.2
+gtf:
+  /path/to/workdir/annotation.gtf
+experiment_table:
+  /path/to/workdir/Shiba_experiment.tsv
+cpu:
+  16
+unannotated:
+  True
+
+# Junction read filtering
+minimum_anchor_length:
+  6
+minimum_intron_length:
+  70
+maximum_intron_length:
+  500000
+strand:
+  XS
+
+# PSI calculation
+only_psi:
+  False
+fdr:
+  0.05
+delta_psi:
+  0.1
+reference_group:
+  Ref
+alternative_group:
+  Alt
+minimum_reads:
+  10
+individual_psi:
+  True
+ttest:
+  True
+excel:
+  True

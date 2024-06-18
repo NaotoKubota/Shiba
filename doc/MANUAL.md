@@ -39,7 +39,7 @@ sample_5<tab>/path/to/workdir/bam/sample_5.bam<tab>Alt
 sample_6<tab>/path/to/workdir/bam/sample_6.bam<tab>Alt
 ```
 
-Please put bam files in the `path/to/workdir/bam` directory and replace `<tab>` with a tab character.
+Please put bam files with their index files (`.bai`) in the `path/to/workdir/bam` directory and replace `<tab>` with a tab character.
 
 </details>
 
@@ -105,11 +105,12 @@ SKIP_STEP1=false # bam2gtf.sh
 SKIP_STEP2=false # gtf2event.py
 SKIP_STEP3=false # bam2junc.sh
 SKIP_STEP4=false # psi.py
-SKIP_STEP5=false # plots.py
-SKIP_STEP6=false # expression.sh
+SKIP_STEP5=false # expression.sh
+SKIP_STEP6=false # pca.py
+SKIP_STEP7=false # plots.py
 ```
 
-You can skip some steps by setting `SKIP_STEP1`, `SKIP_STEP2`, `SKIP_STEP3`, `SKIP_STEP4`, `SKIP_STEP5`, and `SKIP_STEP6` to `true`.
+You can skip some steps by setting `SKIP_STEP*` to `true`.
 
 </details>
 
@@ -142,7 +143,7 @@ The output directory contains the following sub directories:
 #### Files in `results/splicing`
 
 - `PSI_*.txt`: Results of differential splicing analysis.
-- `PSI_matrix.txt`: PSI values for all samples or groups and events. Blank cells indicate that the event did not pass the minimum read count threshold.
+- `PSI_matrix_[sample,group].txt`: PSI values of each event for all samples or groups. Blank cells indicate that the event did not pass the minimum read count threshold.
 - `summary.txt`: Numbers of the differentially spliced events for each splicing and event type.
 
 <details>
@@ -259,12 +260,19 @@ The output directory contains the following sub directories:
 - `CPM.txt`: CPM values for all samples.
 - `DEG.txt`: Results of differential expression analysis by DESeq2.
 
+#### Files in `results/pca`
+
+- `tpm_pca.tsv`: Principal components for TPM matrix.
+- `tpm_contribution.tsv`: Contribution to each principal component for TPM matrix.
+- `psi_pca.tsv`: Principal components for PSI matrix.
+- `psi_contribution.tsv`: Contribution to each principal component for PSI matrix.
+
 <details>
 
-<summary>Output directory structure:</summary>
+<summary>An example of output directory structure:</summary>
 
 ```bash
-output/
+output
 ├── annotation
 │   └── assembled_annotation.gtf
 ├── events
@@ -296,23 +304,31 @@ output/
 │   │   ├── volcano_SE.html
 │   │   └── volcano_THREE.html
 │   └── summary.html
-└── results
-    ├── expression
-    │   ├── counts.txt
-    │   ├── CPM.txt
-    │   ├── DEG.txt
-    │   ├── logs
-    │   │   ├── DESeq2.log
-    │   │   └── featureCounts.log
-    │   ├── TPM_CPM.xlsx
-    │   └── TPM.txt
-    ├── PSI_FIVE.txt
-    ├── PSI_MXE.txt
-    ├── PSI_RI.txt
-    ├── PSI_SE.txt
-    ├── PSI_THREE.txt
-    ├── results.xlsx
-    └── summary.txt
+├── results
+│   ├── expression
+│   │   ├── counts.txt
+│   │   ├── CPM.txt
+│   │   ├── DEG.txt
+│   │   ├── logs
+│   │   │   ├── DESeq2.log
+│   │   │   └── featureCounts.log
+│   │   ├── TPM_CPM.xlsx
+│   │   └── TPM.txt
+│   ├── pca
+│   │   ├── psi_contribution.tsv
+│   │   ├── psi_pca.tsv
+│   │   ├── tpm_contribution.tsv
+│   │   └── tpm_pca.tsv
+│   └── splicing
+│       ├── PSI_FIVE.txt
+│       ├── PSI_matrix_group.txt
+│       ├── PSI_matrix_sample.txt
+│       ├── PSI_MXE.txt
+│       ├── PSI_RI.txt
+│       ├── PSI_SE.txt
+│       ├── PSI_THREE.txt
+│       └── summary.txt
+└── Shiba.log
 ```
 
 </details>
@@ -394,7 +410,8 @@ Usage: bam2junc.sh -i experiment.tsv -r RI_EVENT.txt -o junctions.bed -p [VALUE]
 Calculate PSI and detect differential events.
 
 ```bash
-usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel] junctions event output
+usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel]
+              junctions event output
 
 PSI calculation for alternative splicing events
 
@@ -420,28 +437,11 @@ options:
   -i, --individual-psi  Print PSI for individual samples to output files (default: False)
   -t, --ttest           Perform Welch's t-test between reference and alternative group (default: False)
   --onlypsi             Just calculate PSI for each sample, not perform statistical tests (default: False)
-  --onlypsi-group       Just calculate PSI for each group, not perform statistical tests (default: False)
+  --onlypsi-group       Just calculate PSI for each group, not perform statistical tests (Overrides --onlypsi when used together) (default: False)
   --excel               Make result files in excel format (default: False)
 ```
 
-#### Step5: `plots.py`
-
-Make plots.
-
-```bash
-usage: plots.py [-h] input output
-
-Make plots for alternative splicing events
-
-positional arguments:
-  input       Directory that contains result files
-  output      Directory for output files
-
-options:
-  -h, --help  show this help message and exit
-```
-
-#### Step6: `expression.sh`
+#### Step5: `expression.sh`
 
 Gene expression analysis.
 
@@ -455,6 +455,46 @@ Usage: expression.sh -i experiment.txt -g reference_annotation.gtf -o output_dir
     -r  Reference group for differential expression analysis (default: NA)
     -a  Alternative group for differential expression analysis (default: NA)
     -p  Number of processors to use (default: 1)
+```
+
+#### Step6: `pca.py`
+
+Principal component analysis.
+
+```bash
+usage: pca.py [-h] [--input-tpm INPUT_TPM] [--input-psi INPUT_PSI] [-g GENES] [-o OUTPUT]
+
+pca.py: Principal Component Analysis for matrix of gene expression and splicing
+
+options:
+  -h, --help            show this help message and exit
+  --input-tpm INPUT_TPM
+                        Input TPM file (default: None)
+  --input-psi INPUT_PSI
+                        Input PSI file (default: None)
+  -g GENES, --genes GENES
+                        Number of highly-variable genes or splicing events to calculate PCs (default: 3000)
+  -o OUTPUT, --output OUTPUT
+                        Output directory (default: None)
+```
+
+#### Step7: `plots.py`
+
+Make plots.
+
+```bash
+usage: plots.py [-h] [-i INPUT] [-e EXPERIMENT_TABLE] [-o OUTPUT]
+
+Make plots for alternative splicing events
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Directory that contains result files (default: None)
+  -e EXPERIMENT_TABLE, --experiment-table EXPERIMENT_TABLE
+                        Experiment table file (default: None)
+  -o OUTPUT, --output OUTPUT
+                        Directory for output files (default: None)
 ```
 
 </details>
@@ -501,8 +541,6 @@ strand:
 
 # PSI calculation
 only_psi:
-  False
-only_psi_group:
   False
 fdr:
   0.05
@@ -563,14 +601,14 @@ barcode<tab>SJ
 
 ```bash
 barcode<tab>group
-TTTGTTGTCCACACCT<tab>CellType-1
-TCAAGACCACTACAGT<tab>CellType-1
-TATTTCGGTACAGTAA<tab>CellType-1
-ATCCTATGTTAATCGC<tab>CellType-1
-ATCGATGAGTTTCTTC<tab>CellType-2
-ATCGATGGTCTTGCTC<tab>CellType-2
-TATGTTCGTCAGGCAA<tab>CellType-2
-ATCGCCTAGACTCGAG<tab>CellType-2
+TTTGTTGTCCACACCT<tab>Cluster-1
+TCAAGACCACTACAGT<tab>Cluster-1
+TATTTCGGTACAGTAA<tab>Cluster-1
+ATCCTATGTTAATCGC<tab>Cluster-1
+ATCGATGAGTTTCTTC<tab>Cluster-2
+ATCGATGGTCTTGCTC<tab>Cluster-2
+TATGTTCGTCAGGCAA<tab>Cluster-2
+ATCGCCTAGACTCGAG<tab>Cluster-2
 ...
 ```
 

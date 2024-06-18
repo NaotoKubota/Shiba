@@ -3,7 +3,7 @@ set -o pipefail
 # Prevent commands misbehaving due to locale differences
 export LC_ALL=C
 
-VERSION="v0.1"
+VERSION="v0.2"
 
 
 function usage {
@@ -165,6 +165,11 @@ else
 
 fi
 
+# Get command line of this script
+COMMANDLINE=$(echo -e "$0 $@")
+# Replace experiment table path with the absolute path and config file path with the absolute path
+COMMANDLINE=$(echo -e "${COMMANDLINE}" | sed -e "s|${EXPERIMENT_TABLE}|${EXPERIMENT_TABLE_ABSPATH}|g" -e "s|${CONFIG}|${CONFIG_ABSPATH}|g")
+
 ## Step1: bam2gtf.sh
 echo -e "
 ----------------------------
@@ -173,12 +178,9 @@ echo -e "
 "
 if [ "${SKIP_STEP1}" == false ] && [ "${UNANNOTATED}" == true ]; then
 
-    echo -e "bash ${SRC_PATH}/src/bam2gtf.sh -i ${EXPERIMENT_TABLE_ABSPATH} -r ${GTF} -o ${OUTPUT}/annotation/assembled_annotation.gtf -p ${NUM_PROCESS}"
-    bash ${SRC_PATH}/src/bam2gtf.sh \
-    -i ${EXPERIMENT_TABLE_ABSPATH} \
-    -r ${GTF} \
-    -o ${OUTPUT}/annotation/assembled_annotation.gtf \
-    -p ${NUM_PROCESS}
+    STEP1_COMMAND="bash ${SRC_PATH}/src/bam2gtf.sh -i ${EXPERIMENT_TABLE_ABSPATH} -r ${GTF} -o ${OUTPUT}/annotation/assembled_annotation.gtf -p ${NUM_PROCESS}"
+    echo -e ${STEP1_COMMAND}
+    ${STEP1_COMMAND}
 
 else
 
@@ -202,20 +204,15 @@ echo -e "
 "
 if [ "${SKIP_STEP2}" == false ] && [ "${UNANNOTATED}" == true ]; then
 
-    echo -e "python ${SRC_PATH}/src/gtf2event.py -i ${OUTPUT}/annotation/assembled_annotation.gtf -r ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
-    python ${SRC_PATH}/src/gtf2event.py \
-    -i ${OUTPUT}/annotation/assembled_annotation.gtf \
-    -r ${GTF} \
-    -o ${OUTPUT}/events \
-    -p ${NUM_PROCESS}
+    STEP2_COMMAND_1="python ${SRC_PATH}/src/gtf2event.py -i ${OUTPUT}/annotation/assembled_annotation.gtf -r ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
+    echo -e ${STEP2_COMMAND_1}
+    ${STEP2_COMMAND_1}
 
 elif [ "${SKIP_STEP2}" == false ] && [ "${UNANNOTATED}" == false ]; then
 
-    echo -e "python ${SRC_PATH}/src/gtf2event.py -i ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
-    python ${SRC_PATH}/src/gtf2event.py \
-    -i ${GTF} \
-    -o ${OUTPUT}/events \
-    -p ${NUM_PROCESS}
+    STEP2_COMMAND_2="python ${SRC_PATH}/src/gtf2event.py -i ${GTF} -o ${OUTPUT}/events -p ${NUM_PROCESS}"
+    echo -e ${STEP2_COMMAND_2}
+    ${STEP2_COMMAND_2}
 
 else
 
@@ -257,16 +254,9 @@ if [ "${SKIP_STEP3}" == false ]; then
         exit 1
     fi
 
-    echo -e "bash ${SRC_PATH}/src/bam2junc.sh -i ${EXPERIMENT_TABLE_ABSPATH} -r ${OUTPUT}/events/EVENT_RI.txt -o ${OUTPUT}/junctions/junctions.bed -p ${NUM_PROCESS} -a ${MINIMUM_ANCHOR_LENGTH} -m ${MINIMUM_INTRON_SIZE} -M ${MAXIMUM_INTRON_SIZE} -s ${STRAND}"
-    bash ${SRC_PATH}/src/bam2junc.sh \
-    -i ${EXPERIMENT_TABLE_ABSPATH} \
-    -r ${OUTPUT}/events/EVENT_RI.txt \
-    -o ${OUTPUT}/junctions/junctions.bed \
-    -p ${NUM_PROCESS} \
-    -a ${MINIMUM_ANCHOR_LENGTH} \
-    -m ${MINIMUM_INTRON_SIZE} \
-    -M ${MAXIMUM_INTRON_SIZE} \
-    -s ${STRAND}
+    STEP3_COMMAND="bash ${SRC_PATH}/src/bam2junc.sh -i ${EXPERIMENT_TABLE_ABSPATH} -r ${OUTPUT}/events/EVENT_RI.txt -o ${OUTPUT}/junctions/junctions.bed -p ${NUM_PROCESS} -a ${MINIMUM_ANCHOR_LENGTH} -m ${MINIMUM_INTRON_SIZE} -M ${MAXIMUM_INTRON_SIZE} -s ${STRAND}"
+    echo -e ${STEP3_COMMAND}
+    ${STEP3_COMMAND}
 
 else
 
@@ -291,28 +281,17 @@ echo -e "
 
 if [ "${SKIP_STEP4}" == false ]; then
 
-    if [ "${ONLY_PSI}" == true ]; then
+    if [ "${ONLY_PSI_GROUP}" == true ]; then
 
-        echo -e "python ${SRC_PATH}/src/psi.py -p 1 --onlypsi -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
-        python ${SRC_PATH}/src/psi.py \
-        -p 1 \
-        --onlypsi \
-        -m ${MINIMUM_READS} \
-        ${OUTPUT}/junctions/junctions.bed \
-        ${OUTPUT}/events \
-        ${OUTPUT}/results/splicing
+        STEP4_COMMAND_1="python ${SRC_PATH}/src/psi.py -p 1 --onlypsi-group -g ${EXPERIMENT_TABLE_ABSPATH} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+        echo -e ${STEP4_COMMAND_1}
+        ${STEP4_COMMAND_1}
 
-    elif [ "${ONLY_PSI_GROUP}" == true ]; then
+    elif [ "${ONLY_PSI}" == true ]; then
 
-        echo -e "python ${SRC_PATH}/src/psi.py -p 1 --onlypsi-group -g ${EXPERIMENT_TABLE_ABSPATH} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
-        python ${SRC_PATH}/src/psi.py \
-        -p 1 \
-        --onlypsi-group \
-        -g ${EXPERIMENT_TABLE_ABSPATH} \
-        -m ${MINIMUM_READS} \
-        ${OUTPUT}/junctions/junctions.bed \
-        ${OUTPUT}/events \
-        ${OUTPUT}/results/splicing
+        STEP4_COMMAND_2="python ${SRC_PATH}/src/psi.py -p 1 --onlypsi -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+        echo -e ${STEP4_COMMAND_2}
+        ${STEP4_COMMAND_2}
 
     else
 
@@ -350,37 +329,16 @@ if [ "${SKIP_STEP4}" == false ]; then
 
             if [ "${TTEST}" == true ]; then
 
-                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -i -t ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
-                python ${SRC_PATH}/src/psi.py \
-                -g ${EXPERIMENT_TABLE_ABSPATH} \
-                -p 1 \
-                -r ${REFERENCE_GROUP} \
-                -a ${ALTERNATIVE_GROUP} \
-                -f ${FDR} \
-                -d ${DELTA_PSI} \
-                -m ${MINIMUM_READS} \
-                -i \
-                -t \
-                ${OUTPUT}/junctions/junctions.bed \
-                ${OUTPUT}/events \
-                ${OUTPUT}/results/splicing
+                STEP4_COMMAND_3="python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -i -t ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                echo -e ${STEP4_COMMAND_3}
+                ${STEP4_COMMAND_3}
 
 
             else
 
-                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -i ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
-                python ${SRC_PATH}/src/psi.py \
-                -g ${EXPERIMENT_TABLE_ABSPATH} \
-                -p 1 \
-                -r ${REFERENCE_GROUP} \
-                -a ${ALTERNATIVE_GROUP} \
-                -f ${FDR} \
-                -d ${DELTA_PSI} \
-                -m ${MINIMUM_READS} \
-                -i \
-                ${OUTPUT}/junctions/junctions.bed \
-                ${OUTPUT}/events \
-                ${OUTPUT}/results/splicing
+                STEP4_COMMAND_4="python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -i ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                echo -e ${STEP4_COMMAND_4}
+                ${STEP4_COMMAND_4}
 
             fi
 
@@ -388,34 +346,15 @@ if [ "${SKIP_STEP4}" == false ]; then
 
             if [ "${TTEST}" == true ]; then
 
-                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -t ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
-                python ${SRC_PATH}/src/psi.py \
-                -g ${EXPERIMENT_TABLE_ABSPATH} \
-                -p 1 \
-                -r ${REFERENCE_GROUP} \
-                -a ${ALTERNATIVE_GROUP} \
-                -f ${FDR} \
-                -d ${DELTA_PSI} \
-                -m ${MINIMUM_READS} \
-                -t \
-                ${OUTPUT}/junctions/junctions.bed \
-                ${OUTPUT}/events \
-                ${OUTPUT}/results/splicing
+                STEP4_COMMAND_5="python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} -t ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                echo -e ${STEP4_COMMAND_5}
+                ${STEP4_COMMAND_5}
 
             else
 
-                echo -e "python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
-                python ${SRC_PATH}/src/psi.py \
-                -g ${EXPERIMENT_TABLE_ABSPATH} \
-                -p 1 \
-                -r ${REFERENCE_GROUP} \
-                -a ${ALTERNATIVE_GROUP} \
-                -f ${FDR} \
-                -d ${DELTA_PSI} \
-                -m ${MINIMUM_READS} \
-                ${OUTPUT}/junctions/junctions.bed \
-                ${OUTPUT}/events \
-                ${OUTPUT}/results/splicing
+                STEP4_COMMAND_6="python ${SRC_PATH}/src/psi.py -g ${EXPERIMENT_TABLE_ABSPATH} -p 1 -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -f ${FDR} -d ${DELTA_PSI} -m ${MINIMUM_READS} ${OUTPUT}/junctions/junctions.bed ${OUTPUT}/events ${OUTPUT}/results/splicing"
+                echo -e ${STEP4_COMMAND_6}
+                ${STEP4_COMMAND_6}
 
             fi
 
@@ -437,48 +376,13 @@ timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
 
 echo -e "Step4 execution time: ${timestamp}"
 
-## Step5: plots.py
+## Step5: expression.sh
 echo -e "
 ----------------------------
-      Step5: plots.py
+    Step5: expression.sh
 ----------------------------
 "
-if [ "${ONLY_PSI}" == false ]; then
-
-    if [ "${SKIP_STEP5}" == false ]; then
-
-        echo -e "python ${SRC_PATH}/src/plots.py ${OUTPUT}/results/splicing ${OUTPUT}/plots"
-        python ${SRC_PATH}/src/plots.py \
-        ${OUTPUT}/results/splicing \
-        ${OUTPUT}/plots
-
-    else
-
-        echo -e "Skipped."
-
-    fi
-
-else
-
-    echo -e "Skipped."
-
-fi
-
-i_five=$((${SECONDS} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
-sec=$((i_five % 60))
-min=$(((i_five % 3600) / 60))
-hrs=$((i_five / 3600))
-timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
-
-echo -e "Step5 execution time: ${timestamp}"
-
-## Step6: expression.sh
-echo -e "
-----------------------------
-    Step6: expression.sh
-----------------------------
-"
-if [ "${SKIP_STEP6}" == false ]; then
+if [ "${SKIP_STEP5}" == false ]; then
 
     # Check if the variables are set
     if [ -z ${ONLY_PSI} ]; then
@@ -497,23 +401,52 @@ if [ "${SKIP_STEP6}" == false ]; then
             exit 1
         fi
 
-        echo -e "bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -p ${NUM_PROCESS}"
-        bash ${SRC_PATH}/src/expression.sh \
-        -i ${EXPERIMENT_TABLE_ABSPATH} \
-        -g ${GTF} \
-        -o ${OUTPUT}/results/expression \
-        -r ${REFERENCE_GROUP} \
-        -a ${ALTERNATIVE_GROUP} \
-        -p ${NUM_PROCESS}
+        STEP5_COMMAND_1="bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -r ${REFERENCE_GROUP} -a ${ALTERNATIVE_GROUP} -p ${NUM_PROCESS}"
+        echo -e ${STEP5_COMMAND_1}
+        ${STEP5_COMMAND_1}
 
     else
 
-        echo -e "bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -p ${NUM_PROCESS}"
-        bash ${SRC_PATH}/src/expression.sh \
-        -i ${EXPERIMENT_TABLE_ABSPATH} \
-        -g ${GTF} \
-        -o ${OUTPUT}/results/expression \
-        -p ${NUM_PROCESS}
+        STEP5_COMMAND_2="bash ${SRC_PATH}/src/expression.sh -i ${EXPERIMENT_TABLE_ABSPATH} -g ${GTF} -o ${OUTPUT}/results/expression -p ${NUM_PROCESS}"
+        echo -e ${STEP5_COMMAND_2}
+        ${STEP5_COMMAND_2}
+
+    fi
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_five=$((${SECONDS} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
+sec=$((i_five % 60))
+min=$(((i_five % 3600) / 60))
+hrs=$((i_five / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step5 execution time: ${timestamp}"
+
+## Step6: pca.py
+echo -e "
+----------------------------
+    Step6: pca.py
+----------------------------
+"
+
+if [ "${SKIP_STEP6}" == false ]; then
+
+    if [ "${ONLY_PSI_GROUP}" == true ]; then
+
+        STEP6_COMMAND_1="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_group.txt -g 3000 -o ${OUTPUT}/results/pca"
+        echo -e ${STEP6_COMMAND_1}
+        ${STEP6_COMMAND_1}
+
+    else
+
+        STEP6_COMMAND_2="python ${SRC_PATH}/src/pca.py --input-tpm ${OUTPUT}/results/expression/TPM.txt --input-psi ${OUTPUT}/results/splicing/PSI_matrix_sample.txt -g 3000 -o ${OUTPUT}/results/pca"
+        echo -e ${STEP6_COMMAND_2}
+        ${STEP6_COMMAND_2}
 
     fi
 
@@ -531,6 +464,41 @@ timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
 
 echo -e "Step6 execution time: ${timestamp}"
 
+## Step7: plots.py
+echo -e "
+----------------------------
+    Step7: plots.py
+----------------------------
+"
+if [ "${ONLY_PSI}" == false ]; then
+
+    if [ "${SKIP_STEP7}" == false ]; then
+
+        STEP7_COMMAND="python ${SRC_PATH}/src/plots.py -i ${OUTPUT}/results -e ${EXPERIMENT_TABLE_ABSPATH} -s "\"${COMMANDLINE}\"" -o ${OUTPUT}/plots"
+        echo -e ${STEP7_COMMAND}
+        python ${SRC_PATH}/src/plots.py -i ${OUTPUT}/results -e ${EXPERIMENT_TABLE_ABSPATH} -s "${COMMANDLINE}" -o ${OUTPUT}/plots
+
+    else
+
+        echo -e "Skipped."
+
+    fi
+
+else
+
+    echo -e "Skipped."
+
+fi
+
+i_seven=$((${SECONDS} - ${i_six} - ${i_five} - ${i_four} - ${i_three} - ${i_two} - ${i_one}))
+sec=$((i_seven % 60))
+min=$(((i_seven % 3600) / 60))
+hrs=$((i_seven / 3600))
+timestamp=$(printf "%d:%02d:%02d" "$hrs" "$min" "$sec")
+
+echo -e "Step7 execution time: ${timestamp}"
+
+# Total execution time
 i=${SECONDS}
 sec=$((i % 60))
 min=$(((i % 3600) / 60))

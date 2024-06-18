@@ -5,6 +5,11 @@ Usage:
     snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
+import os
+from pathlib import Path
+import sys
+args = sys.argv
+
 def load_experiment(file):
     experiment_dict = {}
     with open(file, "r") as f:
@@ -17,17 +22,31 @@ def load_experiment(file):
 experiment_dict = load_experiment(config["experiment_table"])
 juncfiles_list = []
 
+base_dir = os.path.dirname(workflow.snakefile)
+command = " ".join(args)
+# Replace snakefile path with the absolute path
+command = command.replace(workflow.snakefile, os.path.join(base_dir, workflow.snakefile))
+# Replace config yaml path with the absolute path
+configfile_path= args[args.index("--configfile") + 1]
+# Absolute path of the directory containing the config yaml file
+configfile_dir_path = Path(configfile_path).resolve().parent
+command = command.replace(configfile_path, os.path.join(str(configfile_dir_path), configfile_path))
+
 workdir: config["workdir"]
 container: config["container"]
 
 rule all:
     input:
         PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
-        plots = "plots/summary.html",
+        summary = "plots/summary.html",
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
         counts = "results/expression/counts.txt",
-        deg = "results/expression/DEG.txt"
+        deg = "results/expression/DEG.txt",
+        tpm_pca = "results/pca/tpm_pca.tsv",
+        tpm_contribution = "results/pca/tpm_contribution.tsv",
+        psi_pca = "results/pca/psi_pca.tsv",
+        psi_contribution = "results/pca/psi_contribution.tsv"
 
 rule bam2gtf:
     wildcard_constraints:
@@ -86,9 +105,11 @@ rule gtf2event:
         "benchmark/gtf2event.txt"
     log:
         "log/gtf2event.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/gtf2event.py \
+        python {params.base_dir}/src/gtf2event.py \
         -i {input.assembled_gtf} \
         -r {input.gtf} \
         -o {output} \
@@ -148,9 +169,11 @@ rule bam2junc_RI:
         "benchmark/bam2junc/{sample}_featureCounts_RI.txt"
     log:
         "log/bam2junc/{sample}_featureCounts_RI.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/bam2junc_RI_snakemake.py \
+        python {params.base_dir}/src/bam2junc_RI_snakemake.py \
         -b {input.bam} \
         -r {input.RI} \
         -o {output.junc} \
@@ -168,9 +191,11 @@ rule merge_junc:
         "benchmark/merge_junc.txt"
     log:
         "log/merge_junc.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/merge_junc_snakemake.py \
+        python {params.base_dir}/src/merge_junc_snakemake.py \
         --exonexon {input.exonexon} \
         --exonintron {input.exonintron} \
         --output {output} >& {log}
@@ -182,16 +207,19 @@ rule psi:
         event = "events"
     output:
         results = directory("results/splicing"),
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"])
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
     threads:
         1
     benchmark:
         "benchmark/psi.txt"
     log:
         "log/psi.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/psi_snakemake.py \
+        python {params.base_dir}/src/psi_snakemake.py \
         -p {threads} \
         -g {config[experiment_table]} \
         -f {config[fdr]} \
@@ -209,23 +237,6 @@ rule psi:
         {output.results} >& {log}
         """
 
-rule plots:
-    input:
-        "results/splicing"
-    output:
-        plots = directory("plots"),
-        summary = "plots/summary.html"
-    benchmark:
-        "benchmark/plots.txt"
-    log:
-        "log/plots.log"
-    shell:
-        """
-        python /opt_shiba/Shiba/src/plots.py \
-        {input} \
-        {output.plots} >& {log}
-        """
-
 rule expression_featureCounts:
     wildcard_constraints:
         sample = "|".join(experiment_dict)
@@ -240,9 +251,11 @@ rule expression_featureCounts:
         "benchmark/expression/{sample}_featureCounts.txt"
     log:
         "log/expression/{sample}_featureCounts.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/expression_featureCounts_snakemake.py \
+        python {params.base_dir}/src/expression_featureCounts_snakemake.py \
         -b {input.bam} \
         -g {config[gtf]} \
         -o {output.counts} \
@@ -261,9 +274,11 @@ rule expression_tpm:
         "benchmark/expression/TPM_CPM.txt"
     log:
         "log/expression/TPM_CPM.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/tpm_snakemake.py \
+        python {params.base_dir}/src/tpm_snakemake.py \
         --countfiles {input.counts} \
         --output results/expression/ \
         &> {log}
@@ -280,11 +295,61 @@ rule deseq2:
         "log/expression/DESeq2.log"
     shell:
         """
-        python /opt_shiba/Shiba/src/deseq2_snakemake.py \
+        python /rhome/naotok/Shiba-dev/deseq2_snakemake.py \
         --count {input.counts} \
         --experiment-table {config[experiment_table]} \
         --reference {config[reference_group]} \
         --alternative {config[alternative_group]} \
         --output {output.deseq2} \
         &> {log}
+        """
+
+rule pca:
+    input:
+        tpm = "results/expression/TPM.txt",
+        PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
+    output:
+        tpm_pca = "results/pca/tpm_pca.tsv",
+        tpm_contribution = "results/pca/tpm_contribution.tsv",
+        psi_pca = "results/pca/psi_pca.tsv",
+        psi_contribution = "results/pca/psi_contribution.tsv"
+    benchmark:
+        "benchmark/pca/pca.txt"
+    log:
+        "log/pca/pca.log"
+    params:
+        base_dir = base_dir
+    shell:
+        """
+        python {params.base_dir}/src/pca.py \
+        --input-tpm {input.tpm} \
+        --input-psi {input.PSI_matrix_sample} \
+        -g 3000 \
+        -o results/pca \
+        &> {log}
+        """
+
+rule plots:
+    input:
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        tpm_pca = "results/pca/tpm_pca.tsv",
+        tpm_contribution = "results/pca/tpm_contribution.tsv",
+        psi_pca = "results/pca/psi_pca.tsv",
+        psi_contribution = "results/pca/psi_contribution.tsv"
+    output:
+        summary = "plots/summary.html"
+    benchmark:
+        "benchmark/plots.txt"
+    log:
+        "log/plots.log"
+    params:
+        base_dir = base_dir,
+        command = command
+    shell:
+        """
+        python {params.base_dir}/src/plots.py \
+        -i results \
+        -e {config[experiment_table]} \
+        -s "{params.command}" \
+        -o plots >& {log}
         """

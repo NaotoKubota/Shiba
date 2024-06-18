@@ -1,0 +1,26 @@
+workdir:
+  /path/to/workdir/output
+container:
+  docker://naotokubota/shiba:0.2
+gtf:
+  /path/to/workdir/annotation.gtf
+experiment_table:
+  /path/to/workdir/Shiba_experiment.tsv
+cpu:
+  16
+
+# PSI calculation
+only_psi:
+  False
+fdr:
+  0.05
+delta_psi:
+  0.1
+reference_group:
+  Cluster-1
+alternative_group:
+  Cluster-2
+minimum_reads:
+  10
+excel:
+  False
