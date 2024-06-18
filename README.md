@@ -5,7 +5,7 @@
 
 # Shiba
 
-Container-based computational pipeline for robust identification of differential RNA splicing.
+A unified computational method for robust identification of differential RNA splicing.
 
 <img src="img/Shiba_icon.png" width=50%>
 
@@ -16,7 +16,7 @@ Container-based computational pipeline for robust identification of differential
 ## Installation
 
 ```bash
-docker pull naotokubota/shiba:0.1
+docker pull naotokubota/shiba:0.2
 ```
 
 ## Usage
