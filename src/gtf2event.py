@@ -372,6 +372,106 @@ def se(gtf_dic) -> list:
 
 	return(event_l)
 
+def mse(gtf_dic) -> list:
+	'''
+	Make multi-skipped exon list.
+
+	Args:
+		gtf_dic: A dictionary containing information about the GTF file.
+
+	Returns:
+		list: List of multi-skipped exon events, where each event is represented as a list of the form
+		[exonlist, intronlist, mse_n, strand, gene, gene_name].
+		exonlist is concatenated exon list with semi-colon (e.g. exon1;exon2;exon3).
+		intronlist is concatenated intron list with semi-colon (e.g. intron1;intron2;intron3;intron4;exclusion_intron).
+		mse_n is the number of exons skipped.
+	'''
+
+	event_l = []
+
+	for gene in gtf_dic.keys():
+
+		if "intron_list" not in gtf_dic[gene]:
+			continue
+
+		chr = gtf_dic[gene]["chr"]
+		strand = gtf_dic[gene]["strand"]
+		gene_name = gtf_dic[gene]["gene_name"]
+		gene_start_values = gtf_dic[gene]["start"]
+		gene_end_values = gtf_dic[gene]["end"]
+		intron_list = gtf_dic[gene]["intron_list"]
+		intron_start_dict = gtf_dic[gene]["intron_start_dic"]
+		intron_end_dict = gtf_dic[gene]["intron_end_dic"]
+		intron_dic = gtf_dic[gene]["transcript_intron_dic"]
+		exon_dic = gtf_dic[gene]["transcript_exon_dic"]
+		# Sort exons by start position, ascending order
+		exon_dic = {k: sorted(list(v), key = lambda x: int(x.split(":")[1].split("-")[0])) for k, v in exon_dic.items()}
+		# Transcript list sorted by exon number
+		transcript_list = sorted(exon_dic, key = lambda x: len(exon_dic[x]))
+
+		exon_list = gtf_dic[gene]["exon_list"]
+		exon_list_unique = np.unique([[i.split(":")[1].split("-")[0], i.split(":")[1].split("-")[1]] for i in exon_list], axis = 0)
+		# Sort exons by start position, ascending order
+		exon_list_unique = exon_list_unique[np.argsort(exon_list_unique[:, 0].astype("int32"))]
+		exon_start = np.array([i[0] for i in exon_list_unique]).astype("int32")
+		exon_end = np.array([i[1] for i in exon_list_unique]).astype("int32")
+
+		# Identify multi-skipped exon events until five-hundredth exon skipping
+		for mse_n in range(2, 501):
+
+			# Get transcript with at least mse_n+2 exons
+			transcript_list = [transcript for transcript in exon_dic.keys() if len(exon_dic[transcript]) >= mse_n + 2]
+			if len(transcript_list) == 0:
+				break
+			for transcript in transcript_list:
+
+				exon_list_in_transcript = exon_dic[transcript]
+				exon_start_in_transcript = np.array([i.split(":")[1].split("-")[0] for i in exon_list_in_transcript]).astype("int32")
+				exon_end_in_transcript = np.array([i.split(":")[1].split("-")[1] for i in exon_list_in_transcript]).astype("int32")
+
+				# Get combinations of n adjuscent index
+				# e.g. (1, 2) when mse_n = 2 and exon number = 3, first and last exons are excluded
+				# e.g. (1, 2), (2, 3) when mse_n = 2 and exon number = 4, first and last exons are excluded
+				# e.g. (1, 2, 3), (2, 3, 4) when mse_n = 3 and exon number = 6, first and last exons are excluded
+				# e.g. (1, 2, 3), (2, 3, 4), (3, 4, 5) when mse_n = 3 and exon number = 7, first and last exons are excluded
+				idx_number_list = [i for i in range(len(exon_list_in_transcript) - mse_n)] # e.g. [0, 1] when mse_n = 2 and exon number = 4
+				idx_list_list = [list(range(i + 1, i + 1 + mse_n)) for i in idx_number_list] # e.g. [[1, 2], [2, 3]] when mse_n = 2 and exon number = 4
+				for idx_list in idx_list_list:
+
+					# (inc_1)[exon_1](inc_2)[exon_2]...[exon_(mse_n-1)](inc_(mse_n))[exon_(mse_n)](inc_(mse_n+1))
+					# (x1, y1)[y1, x2](x2, y2)[y2, x3]...[x(mse_n-1), y(mse_n)](x(mse_n), y(mse_n))[y(mse_n), x(mse_n+1)](x(mse_n+1), y(mse_n+1))
+					# inc1: (x1, y1)
+					# inc2: (x2, y2)
+					# ...
+					# inc(mse_n): (x(mse_n), y(mse_n))
+					# inc(mse_n+1): (x(mse_n+1), y(mse_n+1))
+					# exc: (x1, y(mse_n+1))
+
+					all_exons = [chr + ":" + str(exon_start_in_transcript[i]) + "-" + str(exon_end_in_transcript[i]) for i in idx_list]
+					exonlist = ";".join(all_exons)
+
+					x1_list = intron_end_dict.get(str(exon_start_in_transcript[idx_list[0]]), set())
+					y_mse_n_1_list = intron_start_dict.get(str(exon_end_in_transcript[idx_list[mse_n - 1]]), set())
+					for x1, y_mse_n_1 in itertools.product(x1_list, y_mse_n_1_list):
+
+						all_inclusion_introns = [chr + ":" + str(x1) + "-" + str(exon_start_in_transcript[idx_list[0]])] # inc1 (first intron)
+						for i in range(mse_n - 2): # inc2 to inc(mse_n)
+							all_inclusion_introns += [chr + ":"
+								+ str(exon_end_in_transcript[idx_list[i + 1]])
+								+ "-"
+								+ str(exon_start_in_transcript[idx_list[i + 2]])
+							]
+						all_inclusion_introns += [chr + ":" + str(exon_end_in_transcript[idx_list[mse_n - 1]]) + "-" + str(y_mse_n_1)] # inc(mse_n+1)
+						exc = chr + ":" + str(x1) + "-" + str(y_mse_n_1)
+						all_introns = all_inclusion_introns + [exc]
+						intronlist = ";".join(all_introns)
+
+						# Check if all inclusion introns are and exclusion introns are NOT present in the same transcript
+						if (set(all_inclusion_introns) <= intron_dic[transcript]) and (exc not in intron_dic[transcript]) and (exc in intron_list):
+
+							event_l += [[exonlist, intronlist, mse_n, strand, gene, gene_name]]
+
+	return(event_l)
 
 def five(gtf_dic) -> list:
 	"""
@@ -1007,6 +1107,50 @@ def main():
 	# end_time = time.time()
 	# print("Retained intron search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
+	# Multiple skipped exons
+	# start_time = time.time()
+	print("Searching multiple skipped exons....", file = sys.stdout)
+	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
+
+		futures = [executor.submit(mse, gtf_dic_split[i]) for i in range(num_process)]
+
+	output_l = []
+
+	for future in concurrent.futures.as_completed(futures):
+
+		output_l += future.result()
+
+	output_df = pd.DataFrame(
+
+		output_l,
+		columns = ["exon", "intron", "mse_n", "strand", "gene_id", "gene_name"]
+
+	)
+
+	# pos_id = chromosome@exon_start-exon_end;exon_start-exon_end@exclusionintron_start-exclusionintron_end
+	output_df["chr"] = output_df["exon"].str.split(":", expand = True)[0]
+	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon"].replace(x["chr"] + ":", ""), axis = 1)
+	output_df["exc"] = output_df["intron"].apply(lambda x: x.split(";")[-1])
+	output_df["pos_id"] = \
+		output_df["chr"] + "@" + \
+		output_df["exon_for_posid"] + "@" + \
+		output_df["exc"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["exc"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
+	output_df = output_df.sort_values("exon")
+	output_df = output_df.drop_duplicates(subset = "pos_id", keep = "first")
+	output_df = output_df.reset_index()
+	output_df["event_id_num"] = output_df.index + 1
+	output_df["event_id"] = "MSE_" + output_df["event_id_num"].astype(str)
+	output_df = output_df[["event_id", "pos_id", "mse_n", "exon", "intron", "strand", "gene_id", "gene_name"]]
+
+	# Check if the intron is annotated
+	output_df["label"] = "annotated"
+
+	MSE_output_df = output_df.copy()
+	del output_df
+
+	# end_time = time.time()
+	# print("Multiple skipped exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
+
 	# Export
 	os.makedirs(output_dir, exist_ok = True)
 	SE_output_df.to_csv(
@@ -1044,6 +1188,14 @@ def main():
 	RI_output_df.to_csv(
 
 		output_dir + "/EVENT_RI.txt",
+		sep = "\t",
+		index = False
+
+	)
+
+	MSE_output_df.to_csv(
+
+		output_dir + "/EVENT_MSE.txt",
 		sep = "\t",
 		index = False
 
