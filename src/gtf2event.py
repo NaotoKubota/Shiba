@@ -259,7 +259,6 @@ def gtf(gtf, num_process) -> pd.DataFrame:
 
 	# Discard genes with only one transcript
 	gtf_dic = {k: v for k, v in gtf_dic.items() if len(v["transcript_exon_dic"]) > 1}
-	print("Number of genes with more than one transcript: " + str(len(gtf_dic)), file = sys.stdout)
 
 	# Split gene list into number of processes
 	gene_l_split = np.array_split(list(gtf_dic.keys()), num_process)
@@ -876,6 +875,12 @@ def main():
 
 		print("Loading " + str(reference_gtf_path) + "....", file = sys.stdout)
 		gtf_ref_exon_set = gtf_exon_set(reference_gtf_path)
+		gtf_ref_dic = gtf(reference_gtf_path, 1)
+		# Only intron_list is needed
+		gtf_ref_intron_set_dict = {k: v["intron_list"] for k, v in gtf_ref_dic[0].items() if "intron_list" in v}
+		gtf_ref_intron_set = set()
+		for k in gtf_ref_intron_set_dict:
+			gtf_ref_intron_set |= gtf_ref_intron_set_dict[k]
 
 	# Skipped exon
 	# start_time = time.time()
@@ -910,8 +915,7 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[output_df["exon"].isin(gtf_ref_exon_set), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) and (x["intron_c"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
@@ -956,8 +960,7 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
@@ -1002,8 +1005,7 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
@@ -1050,8 +1052,7 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a1"] in gtf_ref_intron_set) and (x["intron_a2"] in gtf_ref_intron_set) and (x["intron_b1"] in gtf_ref_intron_set) and (x["intron_b2"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
@@ -1094,8 +1095,7 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)) & (output_df["exon_c"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["exon_c"] in gtf_ref_exon_set) else "unannotated", axis = 1)
 
 	else:
 
@@ -1143,7 +1143,13 @@ def main():
 	output_df = output_df[["event_id", "pos_id", "mse_n", "exon", "intron", "strand", "gene_id", "gene_name"]]
 
 	# Check if the intron is annotated
-	output_df["label"] = "annotated"
+	if reference_gtf_path:
+
+		output_df["label"] = output_df["intron"].apply(lambda x: "annotated" if set(x.split(";")) <= gtf_ref_intron_set else "unannotated")
+
+	else:
+
+		output_df["label"] = "annotated"
 
 	MSE_output_df = output_df.copy()
 	del output_df
