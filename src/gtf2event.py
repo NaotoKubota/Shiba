@@ -1181,9 +1181,14 @@ def main():
 		for k in gtf_ref_intron_set_dict:
 			gtf_ref_intron_set |= gtf_ref_intron_set_dict[k]
 
-	# Skipped exon
+	#################################### Event search #########################################
+
+	output_df_dict = {}
+
+	#################################### Skipped exon (SE) ####################################
+
 	# start_time = time.time()
-	print("Searching skipped exon....", file = sys.stdout)
+	print("Searching skipped exon (SE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(se, gtf_dic_split[i]) for i in range(num_process)]
@@ -1220,15 +1225,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	SE_output_df = output_df.copy()
+	output_df_dict["SE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Skipped exon search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Alternative five prime ss
+	#################################### Alternative Five prime ss (FIVE) ####################################
+
 	# start_time = time.time()
-	print("Searching alternative five prime ss....", file = sys.stdout)
+	print("Searching alternative five prime ss (FIVE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(five, gtf_dic_split[i]) for i in range(num_process)]
@@ -1265,15 +1271,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	FIVE_output_df = output_df.copy()
+	output_df_dict["FIVE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Alternative five prime ss search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Alternative three prime ss
+	#################################### Alternative three prime ss (THREE) ####################################
+
 	# start_time = time.time()
-	print("Searching alternative three prime ss....", file = sys.stdout)
+	print("Searching alternative three prime ss (THREE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(three, gtf_dic_split[i]) for i in range(num_process)]
@@ -1310,15 +1317,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	THREE_output_df = output_df.copy()
+	output_df_dict["THREE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Alternative three prime ss search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Mutually exclusive exon
+	#################################### Mutually exclusive exon (MXE) ####################################
+
 	# start_time = time.time()
-	print("Searching mutually exclusive exons....", file = sys.stdout)
+	print("Searching mutually exclusive exons (MXE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(mxe, gtf_dic_split[i]) for i in range(num_process)]
@@ -1357,15 +1365,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	MXE_output_df = output_df.copy()
+	output_df_dict["MXE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Mutually exclusive exon search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Retained intron
+	#################################### Retained intron (RI) ####################################
+
 	# start_time = time.time()
-	print("Searching retained intron....", file = sys.stdout)
+	print("Searching retained intron (RI)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(ri, gtf_dic_split[i]) for i in range(num_process)]
@@ -1400,15 +1409,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	RI_output_df = output_df.copy()
+	output_df_dict["RI"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Retained intron search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Multiple skipped exons
+	#################################### Multiple skipped exons (MSE) ####################################
+
 	# start_time = time.time()
-	print("Searching multiple skipped exons....", file = sys.stdout)
+	print("Searching multiple skipped exons (MSE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(mse, gtf_dic_split[i]) for i in range(num_process)]
@@ -1450,15 +1460,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	MSE_output_df = output_df.copy()
+	output_df_dict["MSE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Multiple skipped exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Alternative first exons
+	#################################### Alternative first exons (AFE) ####################################
+
 	# start_time = time.time()
-	print("Searching alternative first exons....", file = sys.stdout)
+	print("Searching alternative first exons (AFE)....", file = sys.stdout)
 
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
@@ -1501,15 +1512,16 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	AFE_output_df = output_df.copy()
+	output_df_dict["AFE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Alternative first exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Alternative last exons
+	################################### Alternative last exons (ALE) ###################################
+
 	# start_time = time.time()
-	print("Searching alternative last exons....", file = sys.stdout)
+	print("Searching alternative last exons (ALE)....", file = sys.stdout)
 
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
@@ -1552,81 +1564,29 @@ def main():
 
 		output_df["label"] = "annotated"
 
-	ALE_output_df = output_df.copy()
+	output_df_dict["ALE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Alternative last exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Export
+	#################################### Event search end #########################################
+
+	### Export
 	os.makedirs(output_dir, exist_ok = True)
-	SE_output_df.to_csv(
 
-		output_dir + "/EVENT_SE.txt",
-		sep = "\t",
-		index = False
+	for EVENT in output_df_dict.keys():
 
-	)
+		output_df_dict[EVENT].to_csv(
 
-	FIVE_output_df.to_csv(
+			output_dir + "/EVENT_" + EVENT + ".txt",
+			sep = "\t",
+			index = False
 
-		output_dir + "/EVENT_FIVE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	THREE_output_df.to_csv(
-
-		output_dir + "/EVENT_THREE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	MXE_output_df.to_csv(
-
-		output_dir + "/EVENT_MXE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	RI_output_df.to_csv(
-
-		output_dir + "/EVENT_RI.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	MSE_output_df.to_csv(
-
-		output_dir + "/EVENT_MSE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	AFE_output_df.to_csv(
-
-		output_dir + "/EVENT_AFE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	ALE_output_df.to_csv(
-
-		output_dir + "/EVENT_ALE.txt",
-		sep = "\t",
-		index = False
-
-	)
+		)
 
 	print("Done!", file = sys.stdout)
 
 if __name__ == '__main__':
 
 	main()
-
