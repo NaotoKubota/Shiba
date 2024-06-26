@@ -1,7 +1,7 @@
 # Modules used in psi.py and scpsi.py
 
 import warnings
-warnings.simplefilter('ignore')
+# warnings.simplefilter('ignore')
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
@@ -55,13 +55,37 @@ def read_events(event_path) -> dict:
         dtype = "str"
 
     )
+    event_mse_df = pd.read_csv(
+
+        event_path + "/EVENT_MSE.txt",
+        sep = "\t",
+        dtype = "str"
+
+    )
+    event_afe_df = pd.read_csv(
+
+        event_path + "/EVENT_AFE.txt",
+        sep = "\t",
+        dtype = "str"
+
+    )
+    event_ale_df = pd.read_csv(
+
+        event_path + "/EVENT_ALE.txt",
+        sep = "\t",
+        dtype = "str"
+
+    )
 
     event_df_dict = {
         "SE": event_se_df,
         "FIVE": event_five_df,
         "THREE": event_three_df,
         "MXE": event_mxe_df,
-        "RI": event_ri_df
+        "RI": event_ri_df,
+        "MSE": event_mse_df,
+        "AFE": event_afe_df,
+        "ALE": event_ale_df
     }
 
     return(event_df_dict)
@@ -106,12 +130,36 @@ def read_events_sc(event_path) -> dict:
         dtype = "str"
 
     )
+    event_mse_df = pd.read_csv(
+
+        event_path + "/EVENT_MSE.txt",
+        sep = "\t",
+        dtype = "str"
+
+    )
+    event_afe_df = pd.read_csv(
+
+        event_path + "/EVENT_AFE.txt",
+        sep = "\t",
+        dtype = "str"
+
+    )
+    event_ale_df = pd.read_csv(
+
+        event_path + "/EVENT_ALE.txt",
+        sep = "\t",
+        dtype = "str"
+
+    )
 
     event_df_dict = {
         "SE": event_se_df,
         "FIVE": event_five_df,
         "THREE": event_three_df,
-        "MXE": event_mxe_df
+        "MXE": event_mxe_df,
+        "MSE": event_mse_df,
+        "AFE": event_afe_df,
+        "ALE": event_ale_df
     }
 
     return(event_df_dict)
@@ -352,16 +400,47 @@ def event_for_analysis_se(event_df, junc_set) -> pd.DataFrame:
     return(event_df)
 
 
-def event_for_analysis_five_three(event_df, junc_set) -> pd.DataFrame:
+def event_for_analysis_mse(event_df, junc_set) -> pd.DataFrame:
     """
-    Select FIVE and THREE events for analysis based on whether they contain junctions in the junction set.
+    Select MSE events for analysis based on whether they contain junctions in the junction set.
 
     Args:
-    - event_df (pd.DataFrame): DataFrame containing FIVE and THREE event information.
+    - event_df (pd.DataFrame): DataFrame containing MSE event information.
     - junc_set (set): Set containing all junctions.
 
     Returns:
-    - pd.DataFrame: DataFrame containing selected FIVE and THREE events for analysis.
+    - pd.DataFrame: DataFrame containing selected MSE events for analysis.
+    """
+
+    event_list = []
+
+    intron_values = event_df.intron.values
+
+    for index in range(event_df.shape[0]):
+
+        intron = intron_values[index]
+        intron_set = set(intron.split(";"))
+
+        ## Select events whose at least one junction is in junction list
+        if len(intron_set & junc_set) > 0:
+
+            event_list.append(index)
+
+    event_df = event_df[event_df.index.isin(event_list)]
+
+    return(event_df)
+
+
+def event_for_analysis_five_three_afe_ale(event_df, junc_set) -> pd.DataFrame:
+    """
+    Select FIVE, THREE, AFE, and ALE events for analysis based on whether they contain junctions in the junction set.
+
+    Args:
+    - event_df (pd.DataFrame): DataFrame containing FIVE, THREE, AFE, and ALE event information.
+    - junc_set (set): Set containing all junctions.
+
+    Returns:
+    - pd.DataFrame: DataFrame containing selected FIVE, THREE, AFE, and ALE events for analysis.
     """
 
     event_list = []
@@ -645,7 +724,171 @@ def se_ind(junc_dict_all, event_df, sample_id, num_process, k) -> list:
     return(event_l)
 
 
-def col_five_three(sample_id, group_or_not) -> list:
+def col_mse(sample_id, group_or_not) -> list:
+    """
+    Returns a list of column names for output files for MSE events.
+
+    Args:
+    - sample_id (list): A list of sample IDs.
+    - group_or_not (bool): Whether it is a group analysis or not.
+
+    Returns:
+    - col (list): A list of column names for output files.
+    """
+
+    col = []
+
+    for i in sample_id:
+
+        col += [i + "_junction", i + "_PSI"]
+
+    col = ["event_id", "pos_id", "mse_n", "exon", "intron", "strand", "gene_id", "gene_name", "label"] + col
+
+    return(col)
+
+
+def mse(junc_dict_all, sample_id, event_df, num_process, minimum_reads, k) -> list:
+    """
+    Calculate PSI for each sample in the MSE event.
+
+    Args:
+    - junc_dict_all (dict): A dictionary containing junction counts for each sample.
+    - sample_id (list): A list of sample IDs.
+    - event_df (pd.DataFrame): A pandas DataFrame containing information about the MSE event.
+    - num_process (int): The number of processes.
+    - minimum_reads (int): The minimum number of reads for each junction.
+    - k (int): An integer representing the index of the current process.
+
+    Returns:
+    - event_l (list): A list of lists containing PSI values for each sample in the MSE event.
+    """
+
+    event_l = []
+
+    # Sample ID
+    sample_size = len(sample_id)
+
+    # event list
+    AS_event_l = list(set(event_df["event_id"]))
+    # split
+    event_num_split = np.array_split(AS_event_l, num_process)
+    event_split_df = event_df[event_df["event_id"].isin(event_num_split[k])]
+    event_split_df = event_split_df.reset_index()
+
+    event_values = event_split_df.event_id.values
+    pos_values = event_split_df.pos_id.values
+    mse_n_values = event_split_df.mse_n.values
+    exon_values = event_split_df.exon.values
+    intron_values = event_split_df.intron.values
+    strand_values = event_split_df.strand.values
+    gene_id_values = event_split_df.gene_id.values
+    gene_name_values = event_split_df.gene_name.values
+    label_values = event_split_df.label.values
+
+    for index in range(event_split_df.shape[0]):
+
+        psi_list = [event_values[index], pos_values[index], mse_n_values[index], exon_values[index], intron_values[index], strand_values[index], gene_id_values[index], gene_name_values[index], label_values[index]]
+        for i in sample_id:
+
+            junc_list = junc_dict_all[i]
+            intron_list = intron_values[index].split(";")
+            intron_count_list = []
+            for j in range(len(intron_list)):
+                try:
+                    intron_count = junc_list[intron_list[j]]
+                except:
+                    intron_count = 0
+                intron_count_list.append(intron_count)
+            inclusion_intron_count_list = intron_count_list[0:-1]
+            exclusion_intron_count = intron_count_list[-1]
+
+            # Check minimum junction read count
+            if (sum(inclusion_intron_count_list) >= minimum_reads*len(inclusion_intron_count_list)) or (exclusion_intron_count >= minimum_reads):
+
+                # PSI
+                if (sum(inclusion_intron_count_list) / len(inclusion_intron_count_list)) + exclusion_intron_count != 0:
+
+                    psi = (sum(inclusion_intron_count_list) / len(inclusion_intron_count_list)) / ((sum(inclusion_intron_count_list) / len(inclusion_intron_count_list)) + exclusion_intron_count)
+
+                else:
+
+                    psi = np.nan
+
+            else:
+
+                psi = np.nan
+
+            intron_count_concat = ";".join([str(x) for x in intron_count_list])
+            psi_list += [intron_count_concat, psi]
+
+        event_l += [psi_list]
+
+    return(event_l)
+
+
+def mse_ind(junc_dict_all, event_df, sample_id, num_process, k) -> list:
+    """
+    Calculates PSI for each sample in the MSE event.
+
+    Args:
+    - junc_dict_all (dict): A dictionary containing junction counts for each sample.
+    - event_df (pd.DataFrame): A pandas DataFrame containing information about the MSE event.
+    - sample_id (list): A list of sample IDs.
+    - num_process (int): The number of processes.
+    - k (int): An integer representing the index of the current process.
+
+    Returns:
+    - list: A list of lists containing the event ID and PSI values for each sample.
+    """
+
+    event_l = []
+
+    # event list
+    AS_event_l = list(set(event_df["event_id"]))
+    # split
+    event_num_split = np.array_split(AS_event_l, num_process)
+    event_split_df = event_df[event_df["event_id"].isin(event_num_split[k])]
+    event_split_df = event_split_df.reset_index()
+
+    event_values = event_split_df.event_id.values
+    mse_n_values = event_split_df.mse_n.values
+    exon_values = event_split_df.exon.values
+    intron_values = event_split_df.intron.values
+
+    for index in range(event_split_df.shape[0]):
+
+        psi_list = [event_values[index]]
+        for i in sample_id:
+
+            junc_list = junc_dict_all[i]
+            intron_list = intron_values[index].split(";")
+            intron_count_list = []
+            for j in range(len(intron_list)):
+                try:
+                    intron_count = junc_list[intron_list[j]]
+                except:
+                    intron_count = 0
+                intron_count_list.append(intron_count)
+            inclusion_intron_count_list = intron_count_list[0:-1]
+            exclusion_intron_count = intron_count_list[-1]
+
+            # PSI
+            if (sum(inclusion_intron_count_list) / len(inclusion_intron_count_list)) + exclusion_intron_count != 0:
+
+                psi = (sum(inclusion_intron_count_list) / len(inclusion_intron_count_list)) / ((sum(inclusion_intron_count_list) / len(inclusion_intron_count_list)) + exclusion_intron_count)
+
+            else:
+
+                psi = np.nan
+
+            psi_list += [psi]
+
+        event_l += [psi_list]
+
+    return(event_l)
+
+
+def col_five_three_afe_ale(sample_id, group_or_not) -> list:
     """
     Returns a list of column names for output files.
 
@@ -668,7 +911,7 @@ def col_five_three(sample_id, group_or_not) -> list:
     return(col)
 
 
-def five(junc_dict_all, sample_id, event_df, num_process, minimum_reads, k) -> list:
+def five_three_afe_ale(junc_dict_all, sample_id, event_df, num_process, minimum_reads, k) -> list:
     """
     Calculates PSI for each sample.
 
@@ -747,7 +990,7 @@ def five(junc_dict_all, sample_id, event_df, num_process, minimum_reads, k) -> l
     return(event_l)
 
 
-def five_ind(junc_dict_all, event_df, sample_id, num_process, k) -> list:
+def five_three_afe_ale_ind(junc_dict_all, event_df, sample_id, num_process, k) -> list:
     """
     Calculates PSI for each sample in a given event DataFrame for a specific sample ID.
 
@@ -760,146 +1003,6 @@ def five_ind(junc_dict_all, event_df, sample_id, num_process, k) -> list:
 
     Returns:
     - list: A list of lists containing the event ID and PSI values for each sample.
-    """
-
-    event_l = []
-
-    # event list
-    AS_event_l = list(set(event_df["event_id"]))
-    # split
-    event_num_split = np.array_split(AS_event_l, num_process)
-    event_split_df = event_df[event_df["event_id"].isin(event_num_split[k])]
-    event_split_df = event_split_df.reset_index()
-
-    event_values = event_split_df.event_id.values
-    intron_a_values = event_split_df.intron_a.values
-    intron_b_values = event_split_df.intron_b.values
-
-    for index in range(event_split_df.shape[0]):
-
-        psi_list = [event_values[index]]
-        for i in sample_id:
-
-            junc_list = junc_dict_all[i]
-
-            try:
-                intron_a_count = junc_list[intron_a_values[index]]
-            except:
-                intron_a_count = 0
-
-            try:
-                intron_b_count = junc_list[intron_b_values[index]]
-            except:
-                intron_b_count = 0
-
-            # PSI
-            if intron_a_count + intron_b_count != 0:
-
-                psi = intron_a_count / (intron_a_count + intron_b_count)
-
-            else:
-
-                psi = None
-
-            psi_list += [psi]
-
-        event_l += [psi_list]
-
-    return(event_l)
-
-
-def three(junc_dict_all, sample_id, event_df, num_process, minimum_reads, k) -> list:
-    """
-    Calculate PSI for each sample.
-
-    Args:
-    - junc_dict_all (dict): A dictionary containing junction counts for each sample.
-    - sample_id (list): A list of sample IDs.
-    - event_df (pd.DataFrame): A pandas DataFrame containing information about alternative splicing events.
-    - num_process (int): The number of processes.
-    - minimum_reads (int): The minimum number of reads for each junction.
-    - k (int): The index of the current process.
-
-    Returns:
-    - list: A list of lists containing PSI values for each alternative splicing event.
-    """
-
-    event_l = []
-
-    # Sample ID
-    sample_size = len(sample_id)
-
-    # event list
-    AS_event_l = list(set(event_df["event_id"]))
-    # split
-    event_num_split = np.array_split(AS_event_l, num_process)
-    event_split_df = event_df[event_df["event_id"].isin(event_num_split[k])]
-    event_split_df = event_split_df.reset_index()
-
-    event_values = event_split_df.event_id.values
-    pos_values = event_split_df.pos_id.values
-    exon_a_values = event_split_df.exon_a.values
-    exon_b_values = event_split_df.exon_b.values
-    intron_a_values = event_split_df.intron_a.values
-    intron_b_values = event_split_df.intron_b.values
-    strand_values = event_split_df.strand.values
-    gene_id_values = event_split_df.gene_id.values
-    gene_name_values = event_split_df.gene_name.values
-    label_values = event_split_df.label.values
-
-    for index in range(event_split_df.shape[0]):
-
-        psi_list = [event_values[index], pos_values[index], exon_a_values[index], exon_b_values[index], intron_a_values[index], intron_b_values[index], strand_values[index], gene_id_values[index], gene_name_values[index], label_values[index]]
-        for i in sample_id:
-
-            junc_list = junc_dict_all[i]
-
-            try:
-                intron_a_count = junc_list[intron_a_values[index]]
-            except:
-                intron_a_count = 0
-
-            try:
-                intron_b_count = junc_list[intron_b_values[index]]
-            except:
-                intron_b_count = 0
-
-            # Check minimum junction read count
-            if (intron_a_count >= minimum_reads) or (intron_b_count >= minimum_reads):
-
-                # PSI
-                if intron_a_count + intron_b_count != 0:
-
-                    psi = intron_a_count / (intron_a_count + intron_b_count)
-
-                else:
-
-                    psi = np.nan
-
-            else:
-
-                psi = np.nan
-
-            psi_list += [intron_a_count, intron_b_count, psi]
-
-        event_l += [psi_list]
-
-    return(event_l)
-
-
-def three_ind(junc_dict_all, event_df, sample_id, num_process, k) -> list:
-    """
-    Calculate PSI for each sample for the 3' alternative splicing event type.
-
-    Args:
-    - junc_dict_all (dict): A dictionary containing junction counts for each sample.
-    - event_df (pd.DataFrame): A pandas DataFrame containing information about alternative splicing events.
-    - sample_id (list): A list of sample IDs.
-    - num_process (int): The number of processes.
-    - k (int): The index of the current process.
-
-    Returns:
-    - list: A list of lists containing the PSI values for each sample for each event.
     """
 
     event_l = []
@@ -1447,9 +1550,134 @@ def diff_se(df, group_list, FDR, dPSI) -> pd.DataFrame:
     return(result_df)
 
 
-def diff_five_three(df, group_list, FDR, dPSI) -> pd.DataFrame:
+def diff_mse(df, group_list, FDR, dPSI) -> pd.DataFrame:
     """
-    Differential splicing analysis for FIVE and THREE.
+    Differential splicing analysis for MSE events.
+
+    Args:
+    - df (pd.DataFrame): DataFrame containing MSE junction and PSI information.
+    - group_list (list): List of two group names to compare
+    - FDR (float): False discovery rate
+    - dPSI (float): Minimum delta PSI
+
+    Returns:
+    - pd.DataFrame: DataFrame containing differential splicing analysis results for MSE events.
+    """
+
+    result_df = df
+
+    # Drop rows with nan values
+    result_df = result_df.dropna()
+    result_df = result_df.reset_index()
+
+    group1 = group_list[0]
+    group2 = group_list[1]
+
+    group1_junction = group1 + "_junction"
+    group1_PSI = group1 + "_PSI"
+    group2_junction = group2 + "_junction"
+    group2_PSI = group2 + "_PSI"
+
+    # Keep columns of junctions and PSI of the two groups
+    result_df = result_df[
+        ["event_id", "pos_id", "mse_n", "exon", "intron", "strand", "gene_id", "gene_name", "label"] + \
+        [group1_junction, group1_PSI, group2_junction, group2_PSI]
+    ]
+
+    if result_df.shape[0] != 0:
+
+        # delta PSI
+        result_df["dPSI"] = result_df[group2_PSI] - result_df[group1_PSI]
+
+        # Fisher's exact test, Odds ratio
+        result_df = result_df.reset_index()
+        result_df = result_df.drop(columns = "index")
+
+        group1_junction_values = result_df[group1_junction].values
+        group2_junction_values = result_df[group2_junction].values
+
+        oddsr_junction_col = []
+        oddsr_diff_up_col = []
+        oddsr_diff_down_col = []
+        p_junction_col = []
+        p_maximum_col = []
+
+        for index in range(result_df.shape[0]):
+
+            oddsr_junction_list = []
+            oddsr_diff_up_list = []
+            oddsr_diff_down_list = []
+            p_junction_list = []
+
+            group1_junction_count_list = [int(x) for x in group1_junction_values[index].split(";")]
+            group1_inclusion_junction_count_list = group1_junction_count_list[0:-1]
+            group1_exclusion_junction_count = group1_junction_count_list[-1]
+            group2_junction_count_list = [int(x) for x in group2_junction_values[index].split(";")]
+            group2_inclusion_junction_count_list = group2_junction_count_list[0:-1]
+            group2_exclusion_junction_count = group2_junction_count_list[-1]
+
+            for j in range(len(group1_inclusion_junction_count_list)):
+
+                group1_inclusion_junction_count = group1_inclusion_junction_count_list[j]
+                group2_inclusion_junction_count = group2_inclusion_junction_count_list[j]
+
+                # Make 2x2 table
+                table_2x2_junction = [
+                    [group1_inclusion_junction_count, group1_exclusion_junction_count],
+                    [group2_inclusion_junction_count, group2_exclusion_junction_count]
+                ]
+
+                # Fisher's exact test
+                oddsr, p = stats.fisher_exact(table_2x2_junction, alternative = 'two-sided')
+                oddsr_diff_up_list.append(oddsr >= 3/2)
+                oddsr_diff_down_list.append(oddsr <= 2/3)
+                oddsr_junction_list.append(oddsr)
+                p_junction_list.append(p)
+
+            oddsr_diff_up = all(oddsr_diff_up_list)
+            oddsr_diff_down = all(oddsr_diff_down_list)
+            oddsr_junction_concat = ";".join([str(x) for x in oddsr_junction_list])
+            p_junction_concat = ";".join([str(x) for x in p_junction_list])
+
+            oddsr_junction_col.append(oddsr_junction_concat)
+            oddsr_diff_up_col.append(oddsr_diff_up)
+            oddsr_diff_down_col.append(oddsr_diff_down)
+            p_junction_col.append(p_junction_concat)
+            p_maximum_col.append(max(p_junction_list))
+
+        result_df["OR_junction"] = oddsr_junction_col
+        result_df["OR_diff_up"] = oddsr_diff_up_col
+        result_df["OR_diff_down"] = oddsr_diff_down_col
+        result_df["p_junction"] = p_junction_col
+        result_df["p_maximum"] = p_maximum_col
+
+        # FDR correction
+        result_df.loc[:, "q"] = multitest.multipletests(result_df.loc[:, "p_maximum"], method = "fdr_bh")[1]
+
+        result_df["Diff events"] = result_df.apply(
+            lambda x: "Yes" if (x["OR_diff_up"] or x["OR_diff_down"]) and (x["q"] < FDR) and (abs(x["dPSI"]) >= dPSI) else "No",
+            axis = 1
+        )
+
+        result_df["q"] = result_df["q"].apply(lambda x: 1e-323 if x == 0 else x)
+
+    # Rename columns
+    result_df = result_df.rename(columns = {
+        group1 + "_junction": "ref_junction",
+        group1 + "_PSI": "ref_PSI",
+        group2 + "_junction": "alt_junction",
+        group2 + "_PSI": "alt_PSI"
+    })
+
+    # Drop columns
+    result_df = result_df.drop(columns = ["OR_diff_up", "OR_diff_down"])
+
+    return(result_df)
+
+
+def diff_five_three_afe_ale(df, group_list, FDR, dPSI) -> pd.DataFrame:
+    """
+    Differential splicing analysis for FIVE, THREE, AFE, and ALE events.
 
     Args:
     - df: pandas DataFrame containing the PSI values for each sample and each event
@@ -1458,7 +1686,7 @@ def diff_five_three(df, group_list, FDR, dPSI) -> pd.DataFrame:
     - dPSI (float): Minimum delta PSI
 
     Returns:
-    - result_df: pandas DataFrame containing the differential splicing analysis results for FIVE and THREE events
+    - result_df: pandas DataFrame containing the differential splicing analysis results for FIVE, THREE, AFE, and ALE events
     """
 
     result_df = df
@@ -2076,7 +2304,7 @@ class EventCounter:
         }
 
 
-def save_excel(output_path, SE_df, FIVE_df, THREE_df, MXE_df, RI_df):
+def save_excel(output_path, SE_df, FIVE_df, THREE_df, MXE_df, RI_df, MSE_df, AFE_df, ALE_df):
     """
     Save excel file.
 
@@ -2087,6 +2315,9 @@ def save_excel(output_path, SE_df, FIVE_df, THREE_df, MXE_df, RI_df):
     - THREE_df (pd.DataFrame): DataFrame containing the differential splicing analysis results for THREE events.
     - MXE_df (pd.DataFrame): DataFrame containing the differential splicing analysis results for MXE events.
     - RI_df (pd.DataFrame): DataFrame containing the differential splicing analysis results for RI events.
+    - MSE_df (pd.DataFrame): DataFrame containing the differential splicing events for MSE events.
+    - AFE_df (pd.DataFrame): DataFrame containing the differential splicing events for AFE events.
+    - ALE_df (pd.DataFrame): DataFrame containing the differential splicing events for ALE events.
 
     """
 
@@ -2137,8 +2368,32 @@ def save_excel(output_path, SE_df, FIVE_df, THREE_df, MXE_df, RI_df):
         except:
             pass
 
+        MSE_sf = StyleFrame(MSE_df)
+        MSE_sf.set_column_width(columns = MSE_df.columns, width = 20)
+        MSE_sf.apply_column_style(cols_to_style = MSE_df.columns, styler_obj = style, style_header = True)
+        try:
+            MSE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "MSE")
+        except:
+            pass
 
-def save_excel_sc(output_path, SE_df, FIVE_df, THREE_df, MXE_df):
+        AFE_sf = StyleFrame(AFE_df)
+        AFE_sf.set_column_width(columns = AFE_df.columns, width = 20)
+        AFE_sf.apply_column_style(cols_to_style = AFE_df.columns, styler_obj = style, style_header = True)
+        try:
+            AFE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "AFE")
+        except:
+            pass
+
+        ALE_sf = StyleFrame(ALE_df)
+        ALE_sf.set_column_width(columns = ALE_df.columns, width = 20)
+        ALE_sf.apply_column_style(cols_to_style = ALE_df.columns, styler_obj = style, style_header = True)
+        try:
+            ALE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "ALE")
+        except:
+            pass
+
+
+def save_excel_sc(output_path, SE_df, FIVE_df, THREE_df, MXE_df, MSE_df, AFE_df, ALE_df):
     """
     Save excel file.
 
@@ -2148,6 +2403,9 @@ def save_excel_sc(output_path, SE_df, FIVE_df, THREE_df, MXE_df):
     - FIVE_df (pd.DataFrame): DataFrame containing the differential splicing analysis results for FIVE events.
     - THREE_df (pd.DataFrame): DataFrame containing the differential splicing analysis results for THREE events.
     - MXE_df (pd.DataFrame): DataFrame containing the differential splicing analysis results for MXE events.
+    - MSE_df (pd.DataFrame): DataFrame containing the differential splicing events for MSE events.
+    - AFE_df (pd.DataFrame): DataFrame containing the differential splicing events for AFE events.
+    - ALE_df (pd.DataFrame): DataFrame containing the differential splicing events for ALE events.
 
     """
 
@@ -2187,5 +2445,29 @@ def save_excel_sc(output_path, SE_df, FIVE_df, THREE_df, MXE_df):
         MXE_sf.apply_column_style(cols_to_style = MXE_df.columns, styler_obj = style, style_header = True)
         try:
             MXE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "MXE")
+        except:
+            pass
+
+        MSE_sf = StyleFrame(MSE_df)
+        MSE_sf.set_column_width(columns = MSE_df.columns, width = 20)
+        MSE_sf.apply_column_style(cols_to_style = MSE_df.columns, styler_obj = style, style_header = True)
+        try:
+            MSE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "MSE")
+        except:
+            pass
+
+        AFE_sf = StyleFrame(AFE_df)
+        AFE_sf.set_column_width(columns = AFE_df.columns, width = 20)
+        AFE_sf.apply_column_style(cols_to_style = AFE_df.columns, styler_obj = style, style_header = True)
+        try:
+            AFE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "AFE")
+        except:
+            pass
+
+        ALE_sf = StyleFrame(ALE_df)
+        ALE_sf.set_column_width(columns = ALE_df.columns, width = 20)
+        ALE_sf.apply_column_style(cols_to_style = ALE_df.columns, styler_obj = style, style_header = True)
+        try:
+            ALE_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "ALE")
         except:
             pass

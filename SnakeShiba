@@ -37,7 +37,7 @@ container: config["container"]
 
 rule all:
     input:
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         summary = "plots/summary.html",
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
@@ -207,7 +207,7 @@ rule psi:
         event = "events"
     output:
         results = directory("results/splicing"),
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
     threads:
         1
@@ -331,7 +331,7 @@ rule pca:
 
 rule plots:
     input:
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         tpm_pca = "results/pca/tpm_pca.tsv",
         tpm_contribution = "results/pca/tpm_contribution.tsv",
         psi_pca = "results/pca/psi_pca.tsv",

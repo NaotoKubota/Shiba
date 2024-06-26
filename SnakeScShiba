@@ -7,10 +7,11 @@ Usage:
 
 workdir: config["workdir"]
 container: config["container"]
+base_dir = os.path.dirname(workflow.snakefile)
 
 rule all:
     input:
-        PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE"])
+        PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
 
 rule gtf2event:
     input:
@@ -23,9 +24,11 @@ rule gtf2event:
         "benchmark/gtf2event.txt"
     log:
         "log/gtf2event.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/gtf2event.py \
+        python {params.base_dir}/src/gtf2event.py \
         -i {input.gtf} \
         -o {output} \
         -p {threads} >& {log}
@@ -40,9 +43,11 @@ rule sc2junc:
         "benchmark/sc2junc.txt"
     log:
         "log/sc2junc.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/sc2junc.py \
+        python {params.base_dir}/src/sc2junc.py \
         -i {input} \
         -o {output} >& {log}
         """
@@ -53,16 +58,18 @@ rule scpsi:
         event = "events"
     output:
         results = directory("results"),
-        PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE"])
+        PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
     threads:
         1
     benchmark:
         "benchmark/scpsi.txt"
     log:
         "log/scpsi.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /opt_shiba/Shiba/src/scpsi_snakemake.py \
+        python {params.base_dir}/src/scpsi_snakemake.py \
         -p {threads} \
         -f {config[fdr]} \
         -d {config[delta_psi]} \

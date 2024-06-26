@@ -165,33 +165,33 @@ def main():
     # Alternative five ss
     print("PSI for each alternative five prime ss....", file = sys.stdout)
 
-    event_for_analysis_df = shibalib.event_for_analysis_five_three(event_df_dict["FIVE"], junc_set)
+    event_for_analysis_df = shibalib.event_for_analysis_five_three_afe_ale(event_df_dict["FIVE"], junc_set)
 
     # Make PSI matrix
     if onlypsi_group:
 
         psi_table_group_df = shibalib.make_psi_table_group(
-            group_list, event_for_analysis_df, junc_dict_group, shibalib.five,
-            shibalib.col_five_three, num_process, minimum_reads
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
     elif onlypsi:
 
         psi_table_sample_df = shibalib.make_psi_table_sample(
-            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five,
-            shibalib.col_five_three, num_process, minimum_reads
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
     else:
 
         psi_table_group_df = shibalib.make_psi_table_group(
-            group_list, event_for_analysis_df, junc_dict_group, shibalib.five,
-            shibalib.col_five_three, num_process, minimum_reads
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
         psi_table_sample_df = shibalib.make_psi_table_sample(
-            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five,
-            shibalib.col_five_three, num_process, minimum_reads
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
     # PSI matrix for each group
@@ -210,7 +210,7 @@ def main():
         FIVE_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
             group_df, [reference, alternative], sample_list_diff,
-            shibalib.diff_five_three, shibalib.five_ind, num_process,
+            shibalib.diff_five_three_afe_ale, shibalib.five_three_afe_ale_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
 
@@ -221,33 +221,33 @@ def main():
     # Alternative three ss
     print("PSI for each alternative three prime ss....", file = sys.stdout)
 
-    event_for_analysis_df = shibalib.event_for_analysis_five_three(event_df_dict["THREE"], junc_set)
+    event_for_analysis_df = shibalib.event_for_analysis_five_three_afe_ale(event_df_dict["THREE"], junc_set)
 
     # Make PSI matrix
     if onlypsi_group:
 
         psi_table_group_df = shibalib.make_psi_table_group(
-            group_list, event_for_analysis_df, junc_dict_group, shibalib.three,
-            shibalib.col_five_three, num_process, minimum_reads
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
     elif onlypsi:
 
         psi_table_sample_df = shibalib.make_psi_table_sample(
-            sample_list, event_for_analysis_df, junc_dict_all, shibalib.three,
-            shibalib.col_five_three, num_process, minimum_reads
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
     else:
 
         psi_table_group_df = shibalib.make_psi_table_group(
-            group_list, event_for_analysis_df, junc_dict_group, shibalib.three,
-            shibalib.col_five_three, num_process, minimum_reads
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
         psi_table_sample_df = shibalib.make_psi_table_sample(
-            sample_list, event_for_analysis_df, junc_dict_all, shibalib.three,
-            shibalib.col_five_three, num_process, minimum_reads
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
         )
 
     # PSI matrix for each group
@@ -266,7 +266,7 @@ def main():
         THREE_diff_df = shibalib.diff_event(
             event_for_analysis_df, psi_table_group_df, junc_dict_all,
             group_df, [reference, alternative], sample_list_diff,
-            shibalib.diff_five_three, shibalib.three_ind, num_process,
+            shibalib.diff_five_three_afe_ale, shibalib.five_three_afe_ale_ind, num_process,
             FDR, dPSI, individual_psi, ttest_bool
         )
 
@@ -386,6 +386,174 @@ def main():
         RI_nodiff_group_df, output_mtx_RI_group_df = shibalib.make_psi_mtx(psi_table_group_df)
 
     ################################################################################
+    # Multiple skipped exons
+    print("PSI for each multiple skipped exons....", file = sys.stdout)
+
+    event_for_analysis_df = shibalib.event_for_analysis_mse(event_df_dict["MSE"], junc_set)
+
+    # Make PSI matrix
+    if onlypsi_group:
+
+        psi_table_group_df = shibalib.make_psi_table_group(
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.mse,
+            shibalib.col_mse, num_process, minimum_reads
+        )
+
+    elif onlypsi:
+
+        psi_table_sample_df = shibalib.make_psi_table_sample(
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.mse,
+            shibalib.col_mse, num_process, minimum_reads
+        )
+
+    else:
+
+        psi_table_group_df = shibalib.make_psi_table_group(
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.mse,
+            shibalib.col_mse, num_process, minimum_reads
+        )
+
+        psi_table_sample_df = shibalib.make_psi_table_sample(
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.mse,
+            shibalib.col_mse, num_process, minimum_reads
+        )
+
+    # PSI matrix for each group
+    if onlypsi_group:
+
+        MSE_nodiff_group_df, output_mtx_MSE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
+
+    # PSI matrix for each sample
+    elif onlypsi:
+
+        MSE_nodiff_sample_df, output_mtx_MSE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
+
+    # Differential analysis and PSI matrix
+    else:
+
+        MSE_diff_df = shibalib.diff_event(
+            event_for_analysis_df, psi_table_group_df, junc_dict_all,
+            group_df, [reference, alternative], sample_list_diff,
+            shibalib.diff_mse, shibalib.mse_ind, num_process,
+            FDR, dPSI, individual_psi, ttest_bool
+        )
+
+        MSE_nodiff_sample_df, output_mtx_MSE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
+        MSE_nodiff_group_df, output_mtx_MSE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
+
+    ################################################################################
+    # Alternative first exon
+    print("PSI for each alternative first exon....", file = sys.stdout)
+
+    event_for_analysis_df = shibalib.event_for_analysis_five_three_afe_ale(event_df_dict["AFE"], junc_set)
+
+    # Make PSI matrix
+    if onlypsi_group:
+
+        psi_table_group_df = shibalib.make_psi_table_group(
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+    elif onlypsi:
+
+        psi_table_sample_df = shibalib.make_psi_table_sample(
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+    else:
+
+        psi_table_group_df = shibalib.make_psi_table_group(
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+        psi_table_sample_df = shibalib.make_psi_table_sample(
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+    # PSI matrix for each group
+    if onlypsi_group:
+
+        AFE_nodiff_group_df, output_mtx_AFE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
+
+    # PSI matrix for each sample
+    elif onlypsi:
+
+        AFE_nodiff_sample_df, output_mtx_AFE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
+
+    # Differential analysis and PSI matrix
+    else:
+
+        AFE_diff_df = shibalib.diff_event(
+            event_for_analysis_df, psi_table_group_df, junc_dict_all,
+            group_df, [reference, alternative], sample_list_diff,
+            shibalib.diff_five_three_afe_ale, shibalib.five_three_afe_ale_ind, num_process,
+            FDR, dPSI, individual_psi, ttest_bool
+        )
+
+        AFE_nodiff_sample_df, output_mtx_AFE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
+        AFE_nodiff_group_df, output_mtx_AFE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
+
+    ################################################################################
+    # Alternative last exon
+    print("PSI for each alternative last exon....", file = sys.stdout)
+
+    event_for_analysis_df = shibalib.event_for_analysis_five_three_afe_ale(event_df_dict["ALE"], junc_set)
+
+    # Make PSI matrix
+    if onlypsi_group:
+
+        psi_table_group_df = shibalib.make_psi_table_group(
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+    elif onlypsi:
+
+        psi_table_sample_df = shibalib.make_psi_table_sample(
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+    else:
+
+        psi_table_group_df = shibalib.make_psi_table_group(
+            group_list, event_for_analysis_df, junc_dict_group, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+        psi_table_sample_df = shibalib.make_psi_table_sample(
+            sample_list, event_for_analysis_df, junc_dict_all, shibalib.five_three_afe_ale,
+            shibalib.col_five_three_afe_ale, num_process, minimum_reads
+        )
+
+    # PSI matrix for each group
+    if onlypsi_group:
+
+        ALE_nodiff_group_df, output_mtx_ALE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
+
+    # PSI matrix for each sample
+    elif onlypsi:
+
+        ALE_nodiff_sample_df, output_mtx_ALE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
+
+    # Differential analysis and PSI matrix
+    else:
+
+        ALE_diff_df = shibalib.diff_event(
+            event_for_analysis_df, psi_table_group_df, junc_dict_all,
+            group_df, [reference, alternative], sample_list_diff,
+            shibalib.diff_five_three_afe_ale, shibalib.five_three_afe_ale_ind, num_process,
+            FDR, dPSI, individual_psi, ttest_bool
+        )
+
+        ALE_nodiff_sample_df, output_mtx_ALE_sample_df = shibalib.make_psi_mtx(psi_table_sample_df)
+        ALE_nodiff_group_df, output_mtx_ALE_group_df = shibalib.make_psi_mtx(psi_table_group_df)
+
+    ################################################################################
     # Make directory
     os.makedirs(output_path, exist_ok = True)
     ################################################################################
@@ -393,7 +561,7 @@ def main():
     if onlypsi_group:
 
         simple_psi_group_df = pd.concat(
-            [output_mtx_SE_group_df, output_mtx_FIVE_group_df, output_mtx_THREE_group_df, output_mtx_MXE_group_df, output_mtx_RI_group_df]
+            [output_mtx_SE_group_df, output_mtx_FIVE_group_df, output_mtx_THREE_group_df, output_mtx_MXE_group_df, output_mtx_RI_group_df, output_mtx_MSE_group_df, output_mtx_AFE_group_df, output_mtx_ALE_group_df]
         )
 
         simple_psi_group_df.to_csv(
@@ -409,7 +577,7 @@ def main():
     elif onlypsi:
 
         simple_psi_sample_df = pd.concat(
-            [output_mtx_SE_sample_df, output_mtx_FIVE_sample_df, output_mtx_THREE_sample_df, output_mtx_MXE_sample_df, output_mtx_RI_sample_df]
+            [output_mtx_SE_sample_df, output_mtx_FIVE_sample_df, output_mtx_THREE_sample_df, output_mtx_MXE_sample_df, output_mtx_RI_sample_df, output_mtx_MSE_sample_df, output_mtx_AFE_sample_df, output_mtx_ALE_sample_df]
         )
 
         simple_psi_sample_df.to_csv(
@@ -425,10 +593,10 @@ def main():
     else:
 
         simple_psi_group_df = pd.concat(
-            [output_mtx_SE_group_df, output_mtx_FIVE_group_df, output_mtx_THREE_group_df, output_mtx_MXE_group_df, output_mtx_RI_group_df]
+            [output_mtx_SE_group_df, output_mtx_FIVE_group_df, output_mtx_THREE_group_df, output_mtx_MXE_group_df, output_mtx_RI_group_df, output_mtx_MSE_group_df, output_mtx_AFE_group_df, output_mtx_ALE_group_df]
         )
         simple_psi_sample_df = pd.concat(
-            [output_mtx_SE_sample_df, output_mtx_FIVE_sample_df, output_mtx_THREE_sample_df, output_mtx_MXE_sample_df, output_mtx_RI_sample_df]
+            [output_mtx_SE_sample_df, output_mtx_FIVE_sample_df, output_mtx_THREE_sample_df, output_mtx_MXE_sample_df, output_mtx_RI_sample_df, output_mtx_MSE_sample_df, output_mtx_AFE_sample_df, output_mtx_ALE_sample_df]
         )
 
         simple_psi_group_df.to_csv(
@@ -464,6 +632,12 @@ def main():
         event_counts_MXE = event_counter_MXE.count_all_events()
         event_counter_RI = shibalib.EventCounter(RI_diff_df, dPSI)
         event_counts_RI = event_counter_RI.count_all_events()
+        event_counter_MSE = shibalib.EventCounter(MSE_diff_df, dPSI)
+        event_counts_MSE = event_counter_MSE.count_all_events()
+        event_counter_AFE = shibalib.EventCounter(AFE_diff_df, dPSI)
+        event_counts_AFE = event_counter_AFE.count_all_events()
+        event_counter_ALE = shibalib.EventCounter(ALE_diff_df, dPSI)
+        event_counts_ALE = event_counter_ALE.count_all_events()
 
         summary_l = [
             ["SE", "Up", "annotated", event_counts_SE["up_annotated_num"]],
@@ -485,7 +659,19 @@ def main():
             ["RI", "Up", "annotated", event_counts_RI["up_annotated_num"]],
             ["RI", "Down", "annotated", event_counts_RI["down_annotated_num"]],
             ["RI", "Up", "unannotated", event_counts_RI["up_unannotated_num"]],
-            ["RI", "Down", "unannotated", event_counts_RI["down_unannotated_num"]]
+            ["RI", "Down", "unannotated", event_counts_RI["down_unannotated_num"]],
+            ["MSE", "Up", "annotated", event_counts_MSE["up_annotated_num"]],
+            ["MSE", "Down", "annotated", event_counts_MSE["down_annotated_num"]],
+            ["MSE", "Up", "unannotated", event_counts_MSE["up_unannotated_num"]],
+            ["MSE", "Down", "unannotated", event_counts_MSE["down_unannotated_num"]],
+            ["AFE", "Up", "annotated", event_counts_AFE["up_annotated_num"]],
+            ["AFE", "Down", "annotated", event_counts_AFE["down_annotated_num"]],
+            ["AFE", "Up", "unannotated", event_counts_AFE["up_unannotated_num"]],
+            ["AFE", "Down", "unannotated", event_counts_AFE["down_unannotated_num"]],
+            ["ALE", "Up", "annotated", event_counts_ALE["up_annotated_num"]],
+            ["ALE", "Down", "annotated", event_counts_ALE["down_annotated_num"]],
+            ["ALE", "Up", "unannotated", event_counts_ALE["up_unannotated_num"]],
+            ["ALE", "Down", "unannotated", event_counts_ALE["down_unannotated_num"]],
         ]
 
         summary_df = pd.DataFrame(
@@ -512,6 +698,9 @@ def main():
         THREE_df = THREE_nodiff_group_df
         MXE_df = MXE_nodiff_group_df
         RI_df = RI_nodiff_group_df
+        MSE_df = MSE_nodiff_group_df
+        AFE_df = AFE_nodiff_group_df
+        ALE_df = ALE_nodiff_group_df
 
     elif onlypsi:
 
@@ -520,6 +709,9 @@ def main():
         THREE_df = THREE_nodiff_sample_df
         MXE_df = MXE_nodiff_sample_df
         RI_df = RI_nodiff_sample_df
+        MSE_df = MSE_nodiff_sample_df
+        AFE_df = AFE_nodiff_sample_df
+        ALE_df = ALE_nodiff_sample_df
 
     else:
 
@@ -528,6 +720,9 @@ def main():
         THREE_df = THREE_diff_df
         MXE_df = MXE_diff_df
         RI_df = RI_diff_df
+        MSE_df = MSE_diff_df
+        AFE_df = AFE_diff_df
+        ALE_df = ALE_diff_df
 
     SE_df.to_csv(
 
@@ -569,12 +764,36 @@ def main():
 
     )
 
+    MSE_df.to_csv(
+
+        output_path + "/PSI_MSE.txt",
+        sep = "\t",
+        index = False
+
+    )
+
+    AFE_df.to_csv(
+
+        output_path + "/PSI_AFE.txt",
+        sep = "\t",
+        index = False
+
+    )
+
+    ALE_df.to_csv(
+
+        output_path + "/PSI_ALE.txt",
+        sep = "\t",
+        index = False
+
+    )
+
     ################################################################################
     # Excel file
     if excel:
 
         print("Export to an excel file....", file = sys.stdout)
-        shibalib.save_excel(output_path, SE_df, FIVE_df, THREE_df, MXE_df, RI_df)
+        shibalib.save_excel(output_path, SE_df, FIVE_df, THREE_df, MXE_df, RI_df, MSE_df, AFE_df, ALE_df)
 
     ################################################################################
 

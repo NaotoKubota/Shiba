@@ -159,29 +159,14 @@ def plots(AS: str, input_dir: str, output_dir: str):
 
 	)
 
-	if AS == "FIVE" or AS == "THREE":
-
-		Ref_group = list(df.columns)[12]
-		Exp_group = list(df.columns)[15]
-
-	elif AS == "MXE":
-
-		Ref_group = list(df.columns)[16]
-		Exp_group = list(df.columns)[21]
-
-	else:
-
-		Ref_group = list(df.columns)[13]
-		Exp_group = list(df.columns)[17]
-
 	if not df.empty:
 
 		# Round dPSI and others
 		df["dPSI"] = df["dPSI"].round(2)
 		df['-log10(q)'] = -np.log10(df["q"])
 		df['-log10(q)'] = df['-log10(q)'].round(2)
-		df[Ref_group] = df[Ref_group].round(2)
-		df[Exp_group] = df[Exp_group].round(2)
+		df["ref_PSI"] = df["ref_PSI"].round(2)
+		df["alt_PSI"] = df["alt_PSI"].round(2)
 
 	# Volcano plot
 	if not df.empty:
@@ -200,7 +185,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			opacity = 0.5,
 			category_orders = {"group": ["up", "down", "others"], "label": ["annotated", "unannotated"]},
 			color_discrete_sequence = ["salmon", "steelblue", "lightgrey"],
-			hover_data = ["gene_name", "event_id", Ref_group, Exp_group, "q"]
+			hover_data = ["gene_name", "event_id", "ref_PSI", "alt_PSI", "q"]
 
 		)
 
@@ -267,8 +252,8 @@ def plots(AS: str, input_dir: str, output_dir: str):
 		fig = px.scatter(
 
 			df,
-			x = Ref_group,
-			y = Exp_group,
+			x = "ref_PSI",
+			y = "alt_PSI",
 			color = "group",
 			symbol="label",
 			opacity = 0.5,
@@ -414,7 +399,7 @@ def write_summary_html(shiba_command: str, output_dir: str):
 		lines_strip_pca_dict[pca] = lines_strip
 
 	# Splicing events
-	events = ["SE", "FIVE", "THREE", "MXE", "RI"]
+	events = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]
 	plottypes = ["volcano", "scatter", "bar"]
 	lines_strip_dict = {}
 
@@ -568,6 +553,9 @@ def write_summary_html(shiba_command: str, output_dir: str):
 			<a href="#THREE">Alternative 3'ss (THREE)</a>
 			<a href="#MXE">Mutually exclusive exons (MXE)</a>
 			<a href="#RI">Retained intron (RI)</a>
+			<a href="#MSE">Multiple skipped exons (MSE)</a>
+			<a href="#AFE">Alternative first exon (AFE)</a>
+			<a href="#ALE">Alternative last exon (ALE)</a>
 		</div>
 
 		<div class="content">
@@ -707,6 +695,75 @@ def write_summary_html(shiba_command: str, output_dir: str):
 					"></iframe>
 				</div>
 			</div>
+			<div id="MSE" class="plot">
+				<h2>Multiple skipped exons (MSE)</h2>
+				<div class="plot-container">
+					<iframe srcdoc="
+						{volcano_mse_l1}
+						{volcano_mse_l2}
+						{volcano_mse_l3}
+						{volcano_mse_l4}
+					"></iframe>
+					<iframe srcdoc="
+						{scatter_mse_l1}
+						{scatter_mse_l2}
+						{scatter_mse_l3}
+						{scatter_mse_l4}
+					"></iframe>
+					<iframe srcdoc="
+						{bar_mse_l1}
+						{bar_mse_l2}
+						{bar_mse_l3}
+						{bar_mse_l4}
+					"></iframe>
+				</div>
+			</div>
+			<div id="AFE" class="plot">
+				<h2>Alternative first exon (AFE)</h2>
+				<div class="plot-container">
+					<iframe srcdoc="
+						{volcano_afe_l1}
+						{volcano_afe_l2}
+						{volcano_afe_l3}
+						{volcano_afe_l4}
+					"></iframe>
+					<iframe srcdoc="
+						{scatter_afe_l1}
+						{scatter_afe_l2}
+						{scatter_afe_l3}
+						{scatter_afe_l4}
+					"></iframe>
+					<iframe srcdoc="
+						{bar_afe_l1}
+						{bar_afe_l2}
+						{bar_afe_l3}
+						{bar_afe_l4}
+					"></iframe>
+				</div>
+			</div>
+			<div id="ALE" class="plot">
+				<h2>Alternative last exon (ALE)</h2>
+				<div class="plot-container">
+					<iframe srcdoc="
+						{volcano_ale_l1}
+						{volcano_ale_l2}
+						{volcano_ale_l3}
+						{volcano_ale_l4}
+					"></iframe>
+					<iframe srcdoc="
+						{scatter_ale_l1}
+						{scatter_ale_l2}
+						{scatter_ale_l3}
+						{scatter_ale_l4}
+					"></iframe>
+					<iframe srcdoc="
+						{bar_ale_l1}
+						{bar_ale_l2}
+						{bar_ale_l3}
+						{bar_ale_l4}
+					"></iframe>
+				</div>
+			</div>
 		</div>
 		<footer>
 			<p>© 2024 Naoto Kubota</p>
@@ -782,7 +839,43 @@ def write_summary_html(shiba_command: str, output_dir: str):
 		bar_ri_l1 = lines_strip_dict["RI"]["bar"][0],
 		bar_ri_l2 = lines_strip_dict["RI"]["bar"][1],
 		bar_ri_l3 = lines_strip_dict["RI"]["bar"][2],
-		bar_ri_l4 = lines_strip_dict["RI"]["bar"][3]
+		bar_ri_l4 = lines_strip_dict["RI"]["bar"][3],
+		volcano_mse_l1 = lines_strip_dict["MSE"]["volcano"][0],
+		volcano_mse_l2 = lines_strip_dict["MSE"]["volcano"][1],
+		volcano_mse_l3 = lines_strip_dict["MSE"]["volcano"][2],
+		volcano_mse_l4 = lines_strip_dict["MSE"]["volcano"][3],
+		scatter_mse_l1 = lines_strip_dict["MSE"]["scatter"][0],
+		scatter_mse_l2 = lines_strip_dict["MSE"]["scatter"][1],
+		scatter_mse_l3 = lines_strip_dict["MSE"]["scatter"][2],
+		scatter_mse_l4 = lines_strip_dict["MSE"]["scatter"][3],
+		bar_mse_l1 = lines_strip_dict["MSE"]["bar"][0],
+		bar_mse_l2 = lines_strip_dict["MSE"]["bar"][1],
+		bar_mse_l3 = lines_strip_dict["MSE"]["bar"][2],
+		bar_mse_l4 = lines_strip_dict["MSE"]["bar"][3],
+		volcano_afe_l1 = lines_strip_dict["AFE"]["volcano"][0],
+		volcano_afe_l2 = lines_strip_dict["AFE"]["volcano"][1],
+		volcano_afe_l3 = lines_strip_dict["AFE"]["volcano"][2],
+		volcano_afe_l4 = lines_strip_dict["AFE"]["volcano"][3],
+		scatter_afe_l1 = lines_strip_dict["AFE"]["scatter"][0],
+		scatter_afe_l2 = lines_strip_dict["AFE"]["scatter"][1],
+		scatter_afe_l3 = lines_strip_dict["AFE"]["scatter"][2],
+		scatter_afe_l4 = lines_strip_dict["AFE"]["scatter"][3],
+		bar_afe_l1 = lines_strip_dict["AFE"]["bar"][0],
+		bar_afe_l2 = lines_strip_dict["AFE"]["bar"][1],
+		bar_afe_l3 = lines_strip_dict["AFE"]["bar"][2],
+		bar_afe_l4 = lines_strip_dict["AFE"]["bar"][3],
+		volcano_ale_l1 = lines_strip_dict["ALE"]["volcano"][0],
+		volcano_ale_l2 = lines_strip_dict["ALE"]["volcano"][1],
+		volcano_ale_l3 = lines_strip_dict["ALE"]["volcano"][2],
+		volcano_ale_l4 = lines_strip_dict["ALE"]["volcano"][3],
+		scatter_ale_l1 = lines_strip_dict["ALE"]["scatter"][0],
+		scatter_ale_l2 = lines_strip_dict["ALE"]["scatter"][1],
+		scatter_ale_l3 = lines_strip_dict["ALE"]["scatter"][2],
+		scatter_ale_l4 = lines_strip_dict["ALE"]["scatter"][3],
+		bar_ale_l1 = lines_strip_dict["ALE"]["bar"][0],
+		bar_ale_l2 = lines_strip_dict["ALE"]["bar"][1],
+		bar_ale_l3 = lines_strip_dict["ALE"]["bar"][2],
+		bar_ale_l4 = lines_strip_dict["ALE"]["bar"][3]
 	)
 
 	with open(output_dir + "/summary.html", 'w') as f:
@@ -808,7 +901,7 @@ def main():
 	pca_psi_df, contribution_psi_PC1, contribution_psi_PC2 = load_psi_pca_table(input_dir, experiment_table_df, output_dir)
 	plots_pca("PSI", pca_psi_df, contribution_psi_PC1, contribution_psi_PC2, output_dir)
 
-	AS_list = ["SE", "FIVE", "THREE", "MXE", "RI"]
+	AS_list = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]
 
 	for AS in AS_list:
 

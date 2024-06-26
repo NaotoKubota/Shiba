@@ -23,7 +23,7 @@ base_dir = os.path.dirname(workflow.snakefile)
 
 rule all:
     input:
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
         counts = "results/expression/counts.txt",
@@ -191,7 +191,7 @@ rule psi:
         event = "events"
     output:
         results = directory("results/splicing"),
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
     threads:
         1
