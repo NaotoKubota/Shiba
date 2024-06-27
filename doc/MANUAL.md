@@ -1,14 +1,15 @@
 # MANUAL
 
-## Shiba
+This document provides a manual for Shiba and scShiba for users who want to analyze differential RNA splicing events from bulk and single-cell RNA-seq data.
 
-An exon-centric computational pipeline for robust identification of differential RNA splicing.
+## Shiba
 
 ### Before you start
 
 - Please install [Docker](https://docs.docker.com/get-docker/) or [Singularity](https://sylabs.io/guides/3.7/user-guide/quick_start.html) on your system.
   - For running SnakeShiba or SnakeScShiba, you need to install [Snakemake](https://snakemake.readthedocs.io/en/stable/) and [Singularity](https://sylabs.io/guides/3.7/user-guide/quick_start.html), and clone the Shiba repository on your system (`git clone https://github.com/NaotoKubota/Shiba.git`).
 - Please download a gene annotataion file of your interest in GTF format.
+- Please perform mapping of RNA-seq reads to the reference genome and generate bam files by software such as [STAR](https://github.com/alexdobin/STAR) and [HISAT2](https://daehwankimlab.github.io/hisat2/).
 
 <details>
 
@@ -120,13 +121,13 @@ You can skip some steps by setting `SKIP_STEP*` to `true`.
 # Docker
 cp experiment.tsv config.txt /path/to/workdir
 cd /path/to/workdir
-docker run --rm -v $(pwd):$(pwd) naotokubota/shiba:0.1 Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+docker run --rm -v $(pwd):$(pwd) naotokubota/shiba Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 ```bash
 # Singularity
 cp experiment.tsv config.txt /path/to/workdir
-singularity exec docker://naotokubota/shiba:0.1 Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+singularity exec docker://naotokubota/shiba Shiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 > [!NOTE]
@@ -142,13 +143,13 @@ The output directory contains the following sub directories:
 
 #### Files in `results/splicing`
 
-- `PSI_*.txt`: Results of differential splicing analysis.
+- `PSI_[SE,FIVE,THREE,MXE,RI,MSE,AFE,ALE].txt`: Results of differential splicing analysis.
 - `PSI_matrix_[sample,group].txt`: PSI values of each event for all samples or groups. Blank cells indicate that the event did not pass the minimum read count threshold.
 - `summary.txt`: Numbers of the differentially spliced events for each splicing and event type.
 
 <details>
 
-<summary>Column description of PSI_*.txt</summary>
+<summary>Column description of PSI_[SE,FIVE,THREE,MXE,RI,MSE,AFE,ALE].txt</summary>
 
 ##### Common across all files
 
@@ -158,8 +159,8 @@ The output directory contains the following sub directories:
 - **gene_id**: Gene ID.
 - **gene_name**: Gene name.
 - **label**: Label of the event type (*annotated* or *unannotated*).
-- **Ref_PSI**: PSI of the reference group.
-- **Alt_PSI**: PSI of the alternative group.
+- **ref_PSI**: PSI of the reference group.
+- **alt_PSI**: PSI of the alternative group.
 - **dPSI**: Delta PSI (Alt_PSI - Ref_PSI).
 - **q**: *P*-value of Fisher's exact test adjusted by the Benjamini-Hochberg method.
 - **Diff events**: Flag of if the event is differentially spliced between the reference and alternative groups (*Yes* or *No*).
@@ -172,12 +173,12 @@ The output directory contains the following sub directories:
 - **intron_a**: Genomic coordinates of the left-side inclusive intron of the skipped exon.
 - **intron_b**: Genomic coordinates of the right-side inclusive intron of the skipped exon.
 - **intron_c**: Genomic coordinates of the exclusive intron of the skipped exon.
-- **Ref_junction_a**: Junction read counts of the left-side inclusive intron of the skipped exon in the reference group.
-- **Ref_junction_b**: Junction read counts of the right-side inclusive intron of the skipped exon in the reference group.
-- **Ref_junction_c**: Junction read counts of the exclusive intron of the skipped exon in the reference group.
-- **Alt_junction_a**: Junction read counts of the left-side inclusive intron of the skipped exon in the alternative group.
-- **Alt_junction_b**: Junction read counts of the right-side inclusive intron of the skipped exon in the alternative group.
-- **Alt_junction_c**: Junction read counts of the exclusive intron of the skipped exon in the alternative group.
+- **ref_junction_a**: Junction read counts of the left-side inclusive intron of the skipped exon in the reference group.
+- **ref_junction_b**: Junction read counts of the right-side inclusive intron of the skipped exon in the reference group.
+- **ref_junction_c**: Junction read counts of the exclusive intron of the skipped exon in the reference group.
+- **alt_junction_a**: Junction read counts of the left-side inclusive intron of the skipped exon in the alternative group.
+- **alt_junction_b**: Junction read counts of the right-side inclusive intron of the skipped exon in the alternative group.
+- **alt_junction_c**: Junction read counts of the exclusive intron of the skipped exon in the alternative group.
 - **OR_junction_a**: Odds ratio comparing junction read counts of the left-side inclusive intron to those of the exclusive intron, reference group against alternative group.
 - **p_junction_a**: *P*-value of Fisher's exact test for the junction read counts of the left-side inclusive intron to those of the exclusive intron, reference group against alternative group.
 - **OR_junction_b**: Odds ratio comparing junction read counts of the right-side inclusive intron to those of the exclusive intron, reference group against alternative group.
@@ -192,10 +193,10 @@ The output directory contains the following sub directories:
 - **exon_b**: Genomic coordinates of the shorter exon using less internal splice site.
 - **intron_a**: Genomic coordinates of the intron associated with the longer exon.
 - **intron_b**: Genomic coordinates of the intron associated with the shorter exon.
-- **Ref_junction_a**: Junction read counts of the intron associated with the longer exon in the reference group.
-- **Ref_junction_b**: Junction read counts of the intron associated with the shorter exon in the reference group.
-- **Alt_junction_a**: Junction read counts of the intron associated with the longer exon in the alternative group.
-- **Alt_junction_b**: Junction read counts of the intron associated with the shorter exon in the alternative group.
+- **ref_junction_a**: Junction read counts of the intron associated with the longer exon in the reference group.
+- **ref_junction_b**: Junction read counts of the intron associated with the shorter exon in the reference group.
+- **alt_junction_a**: Junction read counts of the intron associated with the longer exon in the alternative group.
+- **alt_junction_b**: Junction read counts of the intron associated with the shorter exon in the alternative group.
 - **OR**: Odds ratio comparing junction read counts of the intron associated with the longer exon to those of the intron associated with the shorter exon, reference group against alternative group.
 - **p**: *P*-value of Fisher's exact test for the junction read counts of the intron associated with the longer exon to those of the intron associated with the shorter exon, reference group against alternative group.
 
@@ -210,14 +211,14 @@ The output directory contains the following sub directories:
 - **intron_a2**: Genomic coordinates of the right-side inclusive intron of the left-side mutually exclusive exon.
 - **intron_b1**: Genomic coordinates of the left-side inclusive intron of the right-side mutually exclusive exon.
 - **intron_b2**: Genomic coordinates of the right-side inclusive intron of the right-side mutually exclusive exon.
-- **Ref_junction_a1**: Junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon in the reference group.
-- **Ref_junction_a2**: Junction read counts of the right-side inclusive intron of the left-side mutually exclusive exon in the reference group.
-- **Ref_junction_b1**: Junction read counts of the left-side inclusive intron of the right-side mutually exclusive exon in the reference group.
-- **Ref_junction_b2**: Junction read counts of the right-side inclusive intron of the right-side mutually exclusive exon in the reference group.
-- **Alt_junction_a1**: Junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon in the alternative group.
-- **Alt_junction_a2**: Junction read counts of the right-side inclusive intron of the left-side mutually exclusive exon in the alternative group.
-- **Alt_junction_b1**: Junction read counts of the left-side inclusive intron of the right-side mutually exclusive exon in the alternative group.
-- **Alt_junction_b2**: Junction read counts of the right-side inclusive intron of the right-side mutually exclusive exon in the alternative group.
+- **ref_junction_a1**: Junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon in the reference group.
+- **ref_junction_a2**: Junction read counts of the right-side inclusive intron of the left-side mutually exclusive exon in the reference group.
+- **ref_junction_b1**: Junction read counts of the left-side inclusive intron of the right-side mutually exclusive exon in the reference group.
+- **ref_junction_b2**: Junction read counts of the right-side inclusive intron of the right-side mutually exclusive exon in the reference group.
+- **alt_junction_a1**: Junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon in the alternative group.
+- **alt_junction_a2**: Junction read counts of the right-side inclusive intron of the left-side mutually exclusive exon in the alternative group.
+- **alt_junction_b1**: Junction read counts of the left-side inclusive intron of the right-side mutually exclusive exon in the alternative group.
+- **alt_junction_b2**: Junction read counts of the right-side inclusive intron of the right-side mutually exclusive exon in the alternative group.
 - **OR_a1b1**: Odds ratio comparing junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon to those of the left-side inclusive intron of the right-side mutually exclusive exon, reference group against alternative group.
 - **p_a1b1**: *P*-value of Fisher's exact test for the junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon to those of the left-side inclusive intron of the right-side mutually exclusive exon, reference group against alternative group.
 - **OR_a1b2**: Odds ratio comparing junction read counts of the left-side inclusive intron of the left-side mutually exclusive exon to those of the right-side inclusive intron of the right-side mutually exclusive exon, reference group against alternative group.
@@ -236,15 +237,42 @@ The output directory contains the following sub directories:
 - **exon_b**: Genomic coordinates of the right-side exon.
 - **exon_c**: Genomic coordinates of the exon containing the retained intron.
 - **intron_a**: Genomic coordinates of the retained intron.
-- **Ref_junction_a_start**: The left-side exon-intron junction read counts of the retained intron in the reference group.
-- **Ref_junction_a_end**: The right-side exon-intron junction read counts of the retained intron in the reference group.
-- **Alt_junction_a_start**: The left-side exon-intron junction read counts of the retained intron in the alternative group.
-- **Alt_junction_a_end**: The right-side exon-intron junction read counts of the retained intron in the alternative group.
+- **ref_junction_a_start**: The left-side exon-intron junction read counts of the retained intron in the reference group.
+- **ref_junction_a_end**: The right-side exon-intron junction read counts of the retained intron in the reference group.
+- **alt_junction_a_start**: The left-side exon-intron junction read counts of the retained intron in the alternative group.
+- **alt_junction_a_end**: The right-side exon-intron junction read counts of the retained intron in the alternative group.
 - **OR_junction_a_start**: Odds ratio comparing the left-side exon-intron junction read counts to the intron junction read counts, reference group against alternative group.
 - **p_junction_a_start**: *P*-value of Fisher's exact test for the left-side exon-intron junction read counts to the intron junction read counts, reference group against alternative group.
 - **OR_junction_a_end**: Odds ratio comparing the right-side exon-intron junction read counts to the intron junction read counts, reference group against alternative group.
 - **p_junction_a_end**: *P*-value of Fisher's exact test for the right-side exon-intron junction read counts to the intron junction read counts, reference group against alternative group.
 - **p_maximum**: Greater of the two *P*-values of Fisher's exact tests.
+
+##### For `PSI_MSE.txt` (Multiple skipped exons)
+
+<img src="../img/MSE.png" width=70%>
+
+- **mse_n**: Number of skipped exons.
+- **exon**: Genomic coordinates of the skipped exons, separated by semi-colons from the left to the right (e.g., `chr12:76067371-76067473;chr12:76068909-76068994`).
+- **intron**: Genomic coordinates of the associated introns of the skipped exons, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `chr12:76060279-76067371;chr12:76068994-76074203;chr12:76060279-76074203`).
+- **ref_junction**: Junction read counts of the associated introns of the skipped exons in the reference group, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `5899;4581;94`).
+- **alt_junction**: Junction read counts of the associated introns of the skipped exons in the alternative group, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `3856;3243;610`).
+- **OR_junction**: Odds ratio comparing junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `9.927579014743532;9.166748676363493`).
+- **p_juntion**: *P*-value of Fisher's exact test for the junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `1.1031362512301498e-138;2.0130937584324167e-126`).
+
+##### For `PSI_AFE.txt` (Alternative first exon) and `PSI_ALE.txt` (Alternative last exon)
+
+<img src="../img/AFE_ALE.png" width=50%>
+
+- **exon_a**: Genomic coordinates of the distal exon.
+- **exon_b**: Genomic coordinates of the proximal exon.
+- **intron_a**: Genomic coordinates of the intron associated with the distal exon.
+- **intron_b**: Genomic coordinates of the intron associated with the proximal exon.
+- **ref_junction_a**: Junction read counts of the intron associated with the distal exon in the reference group.
+- **ref_junction_b**: Junction read counts of the intron associated with the proximal exon in the reference group.
+- **alt_junction_a**: Junction read counts of the intron associated with the distal exon in the alternative group.
+- **alt_junction_b**: Junction read counts of the intron associated with the proximal exon in the alternative group.
+- **OR**: Odds ratio comparing junction read counts of the intron associated with the distal exon to those of the intron associated with the proximal exon, reference group against alternative group.
+- **p**: *P*-value of Fisher's exact test for the junction read counts of the intron associated with the distal exon to those of the intron associated with the proximal exon, reference group against alternative group.
 
 ##### when `ttest` is `true`
 
@@ -276,7 +304,10 @@ output
 ├── annotation
 │   └── assembled_annotation.gtf
 ├── events
+│   ├── EVENT_AFE.txt
+│   ├── EVENT_ALE.txt
 │   ├── EVENT_FIVE.txt
+│   ├── EVENT_MSE.txt
 │   ├── EVENT_MXE.txt
 │   ├── EVENT_RI.txt
 │   ├── EVENT_SE.txt
@@ -288,17 +319,28 @@ output
 │       └── regtools.log
 ├── plots
 │   ├── data
+│   │   ├── bar_AFE.html
+│   │   ├── bar_ALE.html
 │   │   ├── bar_FIVE.html
+│   │   ├── bar_MSE.html
 │   │   ├── bar_MXE.html
 │   │   ├── bar_RI.html
 │   │   ├── bar_SE.html
 │   │   ├── bar_THREE.html
+│   │   ├── pca_PSI.html
+│   │   ├── pca_TPM.html
+│   │   ├── scatter_AFE.html
+│   │   ├── scatter_ALE.html
 │   │   ├── scatter_FIVE.html
+│   │   ├── scatter_MSE.html
 │   │   ├── scatter_MXE.html
 │   │   ├── scatter_RI.html
 │   │   ├── scatter_SE.html
 │   │   ├── scatter_THREE.html
+│   │   ├── volcano_AFE.html
+│   │   ├── volcano_ALE.html
 │   │   ├── volcano_FIVE.html
+│   │   ├── volcano_MSE.html
 │   │   ├── volcano_MXE.html
 │   │   ├── volcano_RI.html
 │   │   ├── volcano_SE.html
@@ -320,9 +362,12 @@ output
 │   │   ├── tpm_contribution.tsv
 │   │   └── tpm_pca.tsv
 │   └── splicing
+│       ├── PSI_AFE.txt
+│       ├── PSI_ALE.txt
 │       ├── PSI_FIVE.txt
 │       ├── PSI_matrix_group.txt
 │       ├── PSI_matrix_sample.txt
+│       ├── PSI_MSE.txt
 │       ├── PSI_MXE.txt
 │       ├── PSI_RI.txt
 │       ├── PSI_SE.txt
@@ -399,10 +444,10 @@ Usage: bam2junc.sh -i experiment.tsv -r RI_EVENT.txt -o junctions.bed -p [VALUE]
     -r  Intron retention event
     -o  Junction read counts
     -p  Number of processors to use (default: 1)
-    -a  Minimum anchor length for extracting exon-exon junction reads by regtools (default: 8)
-    -m  Minimum intron size for extracting exon-exon junction reads by regtools (default: 70)
-    -M  Maximum intron size for extracting exon-exon junction reads by regtools (default: 500000)
-    -s  Strand specificity of RNA library preparation for extracting exon-exon junction reads by regtools (default: 0)
+    -a  Minimum anchor length (default: 8)
+    -m  Minimum intron size (default: 70)
+    -M  Maximum intron size (default: 500000)
+    -s  Strand specificity of RNA library preparation; XS: unstranded, RF: first-strand, FR: second-strand (default: XS)
 ```
 
 #### Step4: `psi.py`
@@ -519,7 +564,7 @@ A Snakemake-based workflow of Shiba. This is useful for running Shiba on a clust
 workdir:
   /path/to/workdir
 container:
-  docker://naotokubota/shiba:0.1
+  docker://naotokubota/shiba
 gtf:
   /path/to/Mus_musculus.GRCm38.102.gtf
 experiment_table:
@@ -578,8 +623,6 @@ The output directory structure is the same as the output of Shiba but the follow
 - `log`: Log files of each step.
 
 ## scShiba
-
-An exon-cetric computational pipeline for robust identification of differential RNA splicing in scRNA-seq data.
 
 ### 1. Build an experiment table and a config file
 
@@ -670,13 +713,13 @@ You can skip some steps by setting `SKIP_STEP1`, `SKIP_STEP2`, and `SKIP_STEP3` 
 # Docker
 cp experiment.tsv config.txt /path/to/workdir
 cd /path/to/workdir
-docker run --rm -v $(pwd):$(pwd) naotokubota/shiba:0.1 scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+docker run --rm -v $(pwd):$(pwd) naotokubota/shiba scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 ```bash
 # Singularity
 cp experiment.tsv config.txt /path/to/workdir
-singularity exec docker://naotokubota/shiba:0.1 scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
+singularity exec docker://naotokubota/shiba scShiba -i /path/to/workdir/experiment.tsv -c /path/to/workdir/config.txt
 ```
 
 The output directory contains the following sub directories:
@@ -703,7 +746,7 @@ A Snakemake-based workflow of scShiba.
 workdir:
   /path/to/workdir
 container:
-  docker://naotokubota/shiba:0.1
+  docker://naotokubota/shiba
 gtf:
   /path/to/Mus_musculus.GRCm38.102.gtf
 experiment_table:
