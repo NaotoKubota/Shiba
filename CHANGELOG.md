@@ -2,6 +2,23 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.3] - 2024-??-??
+
+### Added
+
+- New features for identifying multiple skipped exons (MSE), alternative first exon (AFE), and alternative last exon (ALE) ([#4](https://github.com/NaotoKubota/Shiba/issues/4))
+  - Up to 5,000 tandemly skipped exons can be identified for MSE, which is reasonable for most datasets and organisms
+
+### Changed
+
+- Unannotated splicing events are now defined when at least one of the associated ***introns*** are not documented in the reference annotation file. Previously, unannotated splicing events were defined when at least one of the associated ***exons*** were not documented in the reference annotation file.
+- Update [README.md](https://github.com/NaotoKubota/Shiba/blob/main/README.md) with new badges
+- Update [MANUAL.md](https://github.com/NaotoKubota/Shiba/blob/main/doc/MANUAL.md) with new instructions for MSE, AFE, and ALE analyses
+
+### Fixed
+
+- Fixed minor bugs in `SnakeScShiba`
+
 ## [v0.2] - 2024-06-17
 
 ### Added
