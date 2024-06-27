@@ -259,7 +259,6 @@ def gtf(gtf, num_process) -> pd.DataFrame:
 
 	# Discard genes with only one transcript
 	gtf_dic = {k: v for k, v in gtf_dic.items() if len(v["transcript_exon_dic"]) > 1}
-	print("Number of genes with more than one transcript: " + str(len(gtf_dic)), file = sys.stdout)
 
 	# Split gene list into number of processes
 	gene_l_split = np.array_split(list(gtf_dic.keys()), num_process)
@@ -369,6 +368,101 @@ def se(gtf_dic) -> list:
 				if exc in intron_list:
 
 					event_l += [[exon, inc1, inc2, exc, strand, gene, gene_name]]
+
+	return(event_l)
+
+
+def mse(gtf_dic) -> list:
+	'''
+	Make multi-skipped exon list.
+
+	Args:
+		gtf_dic: A dictionary containing information about the GTF file.
+
+	Returns:
+		list: List of multi-skipped exon events, where each event is represented as a list of the form
+		[exonlist, intronlist, mse_n, strand, gene, gene_name].
+		exonlist is concatenated exon list with semi-colon (e.g. exon1;exon2;exon3).
+		intronlist is concatenated intron list with semi-colon (e.g. intron1;intron2;intron3;intron4;exclusion_intron).
+		mse_n is the number of exons skipped.
+	'''
+
+	event_l = []
+
+	for gene in gtf_dic.keys():
+
+		if "intron_list" not in gtf_dic[gene]:
+			continue
+
+		chr = gtf_dic[gene]["chr"]
+		strand = gtf_dic[gene]["strand"]
+		gene_name = gtf_dic[gene]["gene_name"]
+		gene_start_values = gtf_dic[gene]["start"]
+		gene_end_values = gtf_dic[gene]["end"]
+		intron_list = gtf_dic[gene]["intron_list"]
+		intron_start_dict = gtf_dic[gene]["intron_start_dic"]
+		intron_end_dict = gtf_dic[gene]["intron_end_dic"]
+		intron_dic = gtf_dic[gene]["transcript_intron_dic"]
+		exon_dic = gtf_dic[gene]["transcript_exon_dic"]
+		# Sort exons by start position, ascending order
+		exon_dic = {k: sorted(list(v), key = lambda x: int(x.split(":")[1].split("-")[0])) for k, v in exon_dic.items()}
+		# Transcript list sorted by exon number
+		transcript_list = sorted(exon_dic, key = lambda x: len(exon_dic[x]))
+
+		# Identify multi-skipped exon events until five-hundredth exon skipping
+		for mse_n in range(2, 501):
+
+			# Get transcript with at least mse_n+2 exons
+			transcript_list = [transcript for transcript in exon_dic.keys() if len(exon_dic[transcript]) >= mse_n + 2]
+			if len(transcript_list) == 0:
+				break
+			for transcript in transcript_list:
+
+				exon_list_in_transcript = exon_dic[transcript]
+				exon_start_in_transcript = np.array([i.split(":")[1].split("-")[0] for i in exon_list_in_transcript]).astype("int32")
+				exon_end_in_transcript = np.array([i.split(":")[1].split("-")[1] for i in exon_list_in_transcript]).astype("int32")
+
+				# Get combinations of n adjuscent index
+				# e.g. (1, 2) when mse_n = 2 and exon number = 3, first and last exons are excluded
+				# e.g. (1, 2), (2, 3) when mse_n = 2 and exon number = 4, first and last exons are excluded
+				# e.g. (1, 2, 3), (2, 3, 4) when mse_n = 3 and exon number = 6, first and last exons are excluded
+				# e.g. (1, 2, 3), (2, 3, 4), (3, 4, 5) when mse_n = 3 and exon number = 7, first and last exons are excluded
+				idx_number_list = [i for i in range(len(exon_list_in_transcript) - mse_n)] # e.g. [0, 1] when mse_n = 2 and exon number = 4
+				idx_list_list = [list(range(i + 1, i + 1 + mse_n)) for i in idx_number_list] # e.g. [[1, 2], [2, 3]] when mse_n = 2 and exon number = 4
+				for idx_list in idx_list_list:
+
+					# (inc_1)[exon_1](inc_2)[exon_2]...[exon_(mse_n-1)](inc_(mse_n))[exon_(mse_n)](inc_(mse_n+1))
+					# (x1, y1)[y1, x2](x2, y2)[y2, x3]...[x(mse_n-1), y(mse_n)](x(mse_n), y(mse_n))[y(mse_n), x(mse_n+1)](x(mse_n+1), y(mse_n+1))
+					# inc1: (x1, y1)
+					# inc2: (x2, y2)
+					# ...
+					# inc(mse_n): (x(mse_n), y(mse_n))
+					# inc(mse_n+1): (x(mse_n+1), y(mse_n+1))
+					# exc: (x1, y(mse_n+1))
+
+					all_exons = [chr + ":" + str(exon_start_in_transcript[i]) + "-" + str(exon_end_in_transcript[i]) for i in idx_list]
+					exonlist = ";".join(all_exons)
+
+					x1_list = intron_end_dict.get(str(exon_start_in_transcript[idx_list[0]]), set())
+					y_mse_n_1_list = intron_start_dict.get(str(exon_end_in_transcript[idx_list[mse_n - 1]]), set())
+					for x1, y_mse_n_1 in itertools.product(x1_list, y_mse_n_1_list):
+
+						all_inclusion_introns = [chr + ":" + str(x1) + "-" + str(exon_start_in_transcript[idx_list[0]])] # inc1 (first intron)
+						for i in range(mse_n - 2): # inc2 to inc(mse_n)
+							all_inclusion_introns += [chr + ":"
+								+ str(exon_end_in_transcript[idx_list[i + 1]])
+								+ "-"
+								+ str(exon_start_in_transcript[idx_list[i + 2]])
+							]
+						all_inclusion_introns += [chr + ":" + str(exon_end_in_transcript[idx_list[mse_n - 1]]) + "-" + str(y_mse_n_1)] # inc(mse_n+1)
+						exc = chr + ":" + str(x1) + "-" + str(y_mse_n_1)
+						all_introns = all_inclusion_introns + [exc]
+						intronlist = ";".join(all_introns)
+
+						# Check if all inclusion introns are and exclusion introns are NOT present in the same transcript
+						if (set(all_inclusion_introns) <= intron_dic[transcript]) and (exc not in intron_dic[transcript]) and (exc in intron_list):
+
+							event_l += [[exonlist, intronlist, mse_n, strand, gene, gene_name]]
 
 	return(event_l)
 
@@ -611,6 +705,310 @@ def three(gtf_dic) -> list:
 	return(event_l)
 
 
+def afe(gtf_dic) -> list:
+	'''
+	Make alternative first exon list.
+
+	Args:
+		gtf_dic: A dictionary containing information about the GTF file.
+
+	Returns:
+		list: List of alternative first exon events, where each event is represented as a list of the form
+		[exon_a, exon_b, intron_a, intron_b, strand, gene, gene_name].
+	'''
+
+	event_l = []
+
+	for gene in gtf_dic.keys():
+
+		if "intron_list" not in gtf_dic[gene]:
+			continue
+
+		chr = gtf_dic[gene]["chr"]
+		strand = gtf_dic[gene]["strand"]
+		gene_name = gtf_dic[gene]["gene_name"]
+		gene_start_values = gtf_dic[gene]["start"]
+		gene_end_values = gtf_dic[gene]["end"]
+		intron_list = gtf_dic[gene]["intron_list"]
+		intron_start_dict = gtf_dic[gene]["intron_start_dic"]
+		intron_end_dict = gtf_dic[gene]["intron_end_dic"]
+		intron_dic = gtf_dic[gene]["transcript_intron_dic"]
+		exon_dic = gtf_dic[gene]["transcript_exon_dic"]
+		# Sort exons by start position, ascending order
+		exon_dic = {k: sorted(list(v), key = lambda x: int(x.split(":")[1].split("-")[0])) for k, v in exon_dic.items()}
+		# Transcript list sorted by exon number
+		transcript_list = sorted(exon_dic, key = lambda x: len(exon_dic[x]))
+		# Keep transcripts with at least two exons
+		transcript_list = [transcript for transcript in transcript_list if len(exon_dic[transcript]) >= 2]
+		if len(transcript_list) < 2:
+			continue
+
+		for transcript1, transcript2 in itertools.combinations(transcript_list, 2):
+
+			# Get first exons
+			first_exon_list = [exon_dic[transcript][0] if strand == "+" else exon_dic[transcript][-1] for transcript in [transcript1, transcript2]]
+			first_exon_transcript1 = first_exon_list[0]
+			first_exon_transcript1_start = first_exon_transcript1.split(":")[1].split("-")[0]
+			first_exon_transcript1_end = first_exon_transcript1.split(":")[1].split("-")[1]
+			first_exon_transcript2 = first_exon_list[1]
+			first_exon_transcript2_start = first_exon_transcript2.split(":")[1].split("-")[0]
+			first_exon_transcript2_end = first_exon_transcript2.split(":")[1].split("-")[1]
+			# Get second exons
+			second_exon_list = [exon_dic[transcript][1] if strand == "+" else exon_dic[transcript][-2] for transcript in [transcript1, transcript2]]
+			second_exon_transcript1 = second_exon_list[0]
+			second_exon_transcript1_start = second_exon_transcript1.split(":")[1].split("-")[0]
+			second_exon_transcript1_end = second_exon_transcript1.split(":")[1].split("-")[1]
+			second_exon_transcript2 = second_exon_list[1]
+			second_exon_transcript2_start = second_exon_transcript2.split(":")[1].split("-")[0]
+			second_exon_transcript2_end = second_exon_transcript2.split(":")[1].split("-")[1]
+
+			if strand == "+":
+
+				# [exc1](inc1), [exc2](inc2)
+				# [first_exon_distal_start, first_exon_distal_end](x1, y1), [first_exon_proximal_start, first_exon_proximal_end](x2, y2)
+				# exc1: [first_exon_distal_start, first_exon_distal_end]
+				# inc1: (x1 = first_exon_distal_end, y1 = second_exon_start)
+				# exc2: [first_exon_proximal_start, first_exon_proximal_end]
+				# inc2: (x2 = first_exon_proximal_end, y2 = second_exon_start)
+
+				# Check if the second exons have the same start position
+				if second_exon_transcript1_start != second_exon_transcript2_start:
+					continue
+
+				# Set distal and proximal first exons
+				if (first_exon_transcript1_start < first_exon_transcript2_start) and (first_exon_transcript1_end < first_exon_transcript2_end):
+
+					first_exon_distal = first_exon_transcript1
+					first_exon_distal_start = first_exon_transcript1_start
+					first_exon_distal_end = first_exon_transcript1_end
+					first_exon_proximal = first_exon_transcript2
+					first_exon_proximal_start = first_exon_transcript2_start
+					first_exon_proximal_end = first_exon_transcript2_end
+
+				elif (first_exon_transcript1_start > first_exon_transcript2_start) and (first_exon_transcript1_end > first_exon_transcript2_end):
+
+					first_exon_distal = first_exon_transcript2
+					first_exon_distal_start = first_exon_transcript2_start
+					first_exon_distal_end = first_exon_transcript2_end
+					first_exon_proximal = first_exon_transcript1
+					first_exon_proximal_start = first_exon_transcript1_start
+					first_exon_proximal_end = first_exon_transcript1_end
+
+				else:
+
+					continue
+
+				second_exon_start = second_exon_transcript1_start
+				exon_a = chr + ":" + first_exon_distal_start + "-" + first_exon_distal_end
+				exon_b = chr + ":" + first_exon_proximal_start + "-" + first_exon_proximal_end
+				intron_a = chr + ":" + first_exon_distal_end + "-" + second_exon_start
+				intron_b = chr + ":" + first_exon_proximal_end + "-" + second_exon_start
+				intron_c = chr + ":" + first_exon_distal_end + "-" + first_exon_proximal_start # Intron connecting the distal and proximal first exons
+
+			else: # strand == "-"
+
+				# (inc1)[exc1], (inc2)[exc2]
+				# (x1, y1)[first_exon_proximal_start, first_exon_proximal_end], (x2, y2)[first_exon_distal_start, first_exon_distal_end]
+				# inc1: (x1 = second_exon_end, y1 = first_exon_proximal_start)
+				# exc1: [first_exon_proximal_start, first_exon_proximal_end]
+				# inc2: (x2 = second_exon_end, y2 = first_exon_distal_start)
+				# exc2: [first_exon_distal_start, first_exon_distal_end]
+
+				# Check if the second exons have the same end position
+				if second_exon_transcript1_end != second_exon_transcript2_end:
+					continue
+
+				# Set distal and proximal first exons
+				if (first_exon_transcript1_start < first_exon_transcript2_start) and (first_exon_transcript1_end < first_exon_transcript2_end):
+
+					first_exon_distal = first_exon_transcript2
+					first_exon_distal_start = first_exon_transcript2_start
+					first_exon_distal_end = first_exon_transcript2_end
+					first_exon_proximal = first_exon_transcript1
+					first_exon_proximal_start = first_exon_transcript1_start
+					first_exon_proximal_end = first_exon_transcript1_end
+
+				elif (first_exon_transcript1_start > first_exon_transcript2_start) and (first_exon_transcript1_end > first_exon_transcript2_end):
+
+					first_exon_distal = first_exon_transcript1
+					first_exon_distal_start = first_exon_transcript1_start
+					first_exon_distal_end = first_exon_transcript1_end
+					first_exon_proximal = first_exon_transcript2
+					first_exon_proximal_start = first_exon_transcript2_start
+					first_exon_proximal_end = first_exon_transcript2_end
+
+				else:
+
+					continue
+
+				second_exon_end = second_exon_transcript1_end
+				exon_a = chr + ":" + first_exon_distal_start + "-" + first_exon_distal_end
+				exon_b = chr + ":" + first_exon_proximal_start + "-" + first_exon_proximal_end
+				intron_a = chr + ":" + second_exon_end + "-" + first_exon_distal_start
+				intron_b = chr + ":" + second_exon_end + "-" + first_exon_proximal_start
+				intron_c = chr + ":" + first_exon_proximal_end + "-" + first_exon_distal_start # Intron connecting the distal and proximal first exons
+
+			# Check if no intron connecting the distal exon and the proximal exon
+			if intron_c in intron_list:
+				continue
+
+			event_l += [[exon_a, exon_b, intron_a, intron_b, strand, gene, gene_name]]
+
+	return(event_l)
+
+
+def ale(gtf_dic) -> list:
+	'''
+	Make alternative last exon list.
+
+	Args:
+		gtf_dic: A dictionary containing information about the GTF file.
+
+	Returns:
+		list: List of alternative last exon events, where each event is represented as a list of the form
+		[exon_a, exon_b, intron_a, intron_b, strand, gene, gene_name].
+	'''
+
+	event_l = []
+
+	for gene in gtf_dic.keys():
+
+		if "intron_list" not in gtf_dic[gene]:
+			continue
+
+		chr = gtf_dic[gene]["chr"]
+		strand = gtf_dic[gene]["strand"]
+		gene_name = gtf_dic[gene]["gene_name"]
+		gene_start_values = gtf_dic[gene]["start"]
+		gene_end_values = gtf_dic[gene]["end"]
+		intron_list = gtf_dic[gene]["intron_list"]
+		intron_start_dict = gtf_dic[gene]["intron_start_dic"]
+		intron_end_dict = gtf_dic[gene]["intron_end_dic"]
+		intron_dic = gtf_dic[gene]["transcript_intron_dic"]
+		exon_dic = gtf_dic[gene]["transcript_exon_dic"]
+		# Sort exons by start position, ascending order
+		exon_dic = {k: sorted(list(v), key = lambda x: int(x.split(":")[1].split("-")[0])) for k, v in exon_dic.items()}
+		# Transcript list sorted by exon number
+		transcript_list = sorted(exon_dic, key = lambda x: len(exon_dic[x]))
+		# Keep transcripts with at least two exons
+		transcript_list = [transcript for transcript in transcript_list if len(exon_dic[transcript]) >= 2]
+		if len(transcript_list) < 2:
+			continue
+
+		for transcript1, transcript2 in itertools.combinations(transcript_list, 2):
+
+			# Get last exons
+			last_exon_list = [exon_dic[transcript][-1] if strand == "+" else exon_dic[transcript][0] for transcript in [transcript1, transcript2]]
+			last_exon_transcript1 = last_exon_list[0]
+			last_exon_transcript1_start = last_exon_transcript1.split(":")[1].split("-")[0]
+			last_exon_transcript1_end = last_exon_transcript1.split(":")[1].split("-")[1]
+			last_exon_transcript2 = last_exon_list[1]
+			last_exon_transcript2_start = last_exon_transcript2.split(":")[1].split("-")[0]
+			last_exon_transcript2_end = last_exon_transcript2.split(":")[1].split("-")[1]
+			# Get penultimate exons
+			penultimate_exon_list = [exon_dic[transcript][-2] if strand == "+" else exon_dic[transcript][1] for transcript in [transcript1, transcript2]]
+			penultimate_exon_transcript1 = penultimate_exon_list[0]
+			penultimate_exon_transcript1_start = penultimate_exon_transcript1.split(":")[1].split("-")[0]
+			penultimate_exon_transcript1_end = penultimate_exon_transcript1.split(":")[1].split("-")[1]
+			penultimate_exon_transcript2 = penultimate_exon_list[1]
+			penultimate_exon_transcript2_start = penultimate_exon_transcript2.split(":")[1].split("-")[0]
+			penultimate_exon_transcript2_end = penultimate_exon_transcript2.split(":")[1].split("-")[1]
+
+			if strand == "+":
+
+				# (inc1)[exc1], (inc2)[exc2]
+				# (x1, y1)[last_exon_proximal_start, last_exon_proximal_end], (x2, y2)[last_exon_distal_start, last_exon_distal_end]
+				# inc1: (x1 = penultimate_exon_end, y1 = last_exon_proximal_start)
+				# exc1: [last_exon_proximal_start, last_exon_proximal_end]
+				# inc2: (x2 = penultimate_exon_end, y2 = last_exon_distal_start)
+				# exc2: [last_exon_distal_start, last_exon_distal_end]
+
+				# Check if the penultimate exons have the same end position
+				if penultimate_exon_transcript1_end != penultimate_exon_transcript2_end:
+					continue
+
+				# Set proximal and distal last exons
+				if (last_exon_transcript1_start < last_exon_transcript2_start) and (last_exon_transcript1_end < last_exon_transcript2_end):
+
+					last_exon_proximal = last_exon_transcript1
+					last_exon_proximal_start = last_exon_transcript1_start
+					last_exon_proximal_end = last_exon_transcript1_end
+					last_exon_distal = last_exon_transcript2
+					last_exon_distal_start = last_exon_transcript2_start
+					last_exon_distal_end = last_exon_transcript2_end
+
+				elif (last_exon_transcript1_start > last_exon_transcript2_start) and (last_exon_transcript1_end > last_exon_transcript2_end):
+
+					last_exon_proximal = last_exon_transcript2
+					last_exon_proximal_start = last_exon_transcript2_start
+					last_exon_proximal_end = last_exon_transcript2_end
+					last_exon_distal = last_exon_transcript1
+					last_exon_distal_start = last_exon_transcript1_start
+					last_exon_distal_end = last_exon_transcript1_end
+
+				else:
+
+					continue
+
+				penultimate_exon_end = penultimate_exon_transcript1_end
+				exon_a = chr + ":" + last_exon_distal_start + "-" + last_exon_distal_end
+				exon_b = chr + ":" + last_exon_proximal_start + "-" + last_exon_proximal_end
+				intron_a = chr + ":" + penultimate_exon_end + "-" + last_exon_distal_start
+				intron_b = chr + ":" + penultimate_exon_end + "-" + last_exon_proximal_start
+				intron_c = chr + ":" + last_exon_proximal_end + "-" + last_exon_distal_start # Intron connecting the distal and proximal last exons
+
+			else: # strand == "-"
+
+				# [exc1](inc1), [exc2](inc2)
+				# [last_exon_distal_start, last_exon_distal_end](x1, y1), [last_exon_proximal_start, last_exon_proximal_end](x2, y2)
+				# exc1: [last_exon_distal_start, last_exon_distal_end]
+				# inc1: (x1 = last_exon_distal_end, y1 = penultimate_exon_start)
+				# exc2: [last_exon_proximal_start, last_exon_proximal_end]
+				# inc2: (x2 = last_exon_proximal_end, y2 = penultimate_exon_start)
+
+				# Check if the penultimate exons have the same start position
+				if penultimate_exon_transcript1_start != penultimate_exon_transcript2_start:
+					continue
+
+				# Set distal and proximal last exons
+				if (last_exon_transcript1_start < last_exon_transcript2_start) and (last_exon_transcript1_end < last_exon_transcript2_end):
+
+					last_exon_distal = last_exon_transcript1
+					last_exon_distal_start = last_exon_transcript1_start
+					last_exon_distal_end = last_exon_transcript1_end
+					last_exon_proximal = last_exon_transcript2
+					last_exon_proximal_start = last_exon_transcript2_start
+					last_exon_proximal_end = last_exon_transcript2_end
+
+				elif (last_exon_transcript1_start > last_exon_transcript2_start) and (last_exon_transcript1_end > last_exon_transcript2_end):
+
+					last_exon_distal = last_exon_transcript2
+					last_exon_distal_start = last_exon_transcript2_start
+					last_exon_distal_end = last_exon_transcript2_end
+					last_exon_proximal = last_exon_transcript1
+					last_exon_proximal_start = last_exon_transcript1_start
+					last_exon_proximal_end = last_exon_transcript1_end
+
+				else:
+
+					continue
+
+				penultimate_exon_start = penultimate_exon_transcript1_start
+				exon_a = chr + ":" + last_exon_distal_start + "-" + last_exon_distal_end
+				exon_b = chr + ":" + last_exon_proximal_start + "-" + last_exon_proximal_end
+				intron_a = chr + ":" + last_exon_distal_end + "-" + penultimate_exon_start
+				intron_b = chr + ":" + last_exon_proximal_end + "-" + penultimate_exon_start
+				intron_c = chr + ":" + last_exon_distal_end + "-" + last_exon_proximal_start # Intron connecting the distal and proximal last exons
+
+			# Check if no intron connecting the distal exon and the proximal exon
+			if intron_c in intron_list:
+				continue
+
+			event_l += [[exon_a, exon_b, intron_a, intron_b, strand, gene, gene_name]]
+
+	return(event_l)
+
+
 def mxe(gtf_dic) -> list:
 	"""
 	Make mutually exclusive exons list.
@@ -776,10 +1174,21 @@ def main():
 
 		print("Loading " + str(reference_gtf_path) + "....", file = sys.stdout)
 		gtf_ref_exon_set = gtf_exon_set(reference_gtf_path)
+		gtf_ref_dic = gtf(reference_gtf_path, 1)
+		# Only intron_list is needed
+		gtf_ref_intron_set_dict = {k: v["intron_list"] for k, v in gtf_ref_dic[0].items() if "intron_list" in v}
+		gtf_ref_intron_set = set()
+		for k in gtf_ref_intron_set_dict:
+			gtf_ref_intron_set |= gtf_ref_intron_set_dict[k]
 
-	# Skipped exon
+	#################################### Event search #########################################
+
+	output_df_dict = {}
+
+	#################################### Skipped exon (SE) ####################################
+
 	# start_time = time.time()
-	print("Searching skipped exon....", file = sys.stdout)
+	print("Searching skipped exon (SE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(se, gtf_dic_split[i]) for i in range(num_process)]
@@ -810,22 +1219,22 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[output_df["exon"].isin(gtf_ref_exon_set), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) and (x["intron_c"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
 		output_df["label"] = "annotated"
 
-	SE_output_df = output_df.copy()
+	output_df_dict["SE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Skipped exon search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Alternative five prime ss
+	#################################### Alternative Five prime ss (FIVE) ####################################
+
 	# start_time = time.time()
-	print("Searching alternative five prime ss....", file = sys.stdout)
+	print("Searching alternative five prime ss (FIVE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(five, gtf_dic_split[i]) for i in range(num_process)]
@@ -856,22 +1265,22 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
 		output_df["label"] = "annotated"
 
-	FIVE_output_df = output_df.copy()
+	output_df_dict["FIVE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Alternative five prime ss search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Alternative three prime ss
+	#################################### Alternative three prime ss (THREE) ####################################
+
 	# start_time = time.time()
-	print("Searching alternative three prime ss....", file = sys.stdout)
+	print("Searching alternative three prime ss (THREE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(three, gtf_dic_split[i]) for i in range(num_process)]
@@ -902,22 +1311,22 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
 		output_df["label"] = "annotated"
 
-	THREE_output_df = output_df.copy()
+	output_df_dict["THREE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Alternative three prime ss search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Mutually exclusive exon
+	#################################### Mutually exclusive exon (MXE) ####################################
+
 	# start_time = time.time()
-	print("Searching mutually exclusive exons....", file = sys.stdout)
+	print("Searching mutually exclusive exons (MXE)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(mxe, gtf_dic_split[i]) for i in range(num_process)]
@@ -950,22 +1359,22 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a1"] in gtf_ref_intron_set) and (x["intron_a2"] in gtf_ref_intron_set) and (x["intron_b1"] in gtf_ref_intron_set) and (x["intron_b2"] in gtf_ref_intron_set) else "unannotated", axis = 1)
 
 	else:
 
 		output_df["label"] = "annotated"
 
-	MXE_output_df = output_df.copy()
+	output_df_dict["MXE"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Mutually exclusive exon search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Retained intron
+	#################################### Retained intron (RI) ####################################
+
 	# start_time = time.time()
-	print("Searching retained intron....", file = sys.stdout)
+	print("Searching retained intron (RI)....", file = sys.stdout)
 	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
 
 		futures = [executor.submit(ri, gtf_dic_split[i]) for i in range(num_process)]
@@ -994,64 +1403,190 @@ def main():
 
 	if reference_gtf_path:
 
-		output_df.loc[(output_df["exon_a"].isin(gtf_ref_exon_set)) & (output_df["exon_b"].isin(gtf_ref_exon_set)) & (output_df["exon_c"].isin(gtf_ref_exon_set)), "label"] = "annotated"
-		output_df = output_df.fillna({"label": "unannotated"})
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["exon_c"] in gtf_ref_exon_set) else "unannotated", axis = 1)
 
 	else:
 
 		output_df["label"] = "annotated"
 
-	RI_output_df = output_df.copy()
+	output_df_dict["RI"] = output_df
 	del output_df
 
 	# end_time = time.time()
 	# print("Retained intron search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
 
-	# Export
+	#################################### Multiple skipped exons (MSE) ####################################
+
+	# start_time = time.time()
+	print("Searching multiple skipped exons (MSE)....", file = sys.stdout)
+	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
+
+		futures = [executor.submit(mse, gtf_dic_split[i]) for i in range(num_process)]
+
+	output_l = []
+
+	for future in concurrent.futures.as_completed(futures):
+
+		output_l += future.result()
+
+	output_df = pd.DataFrame(
+
+		output_l,
+		columns = ["exon", "intron", "mse_n", "strand", "gene_id", "gene_name"]
+
+	)
+
+	# pos_id = chromosome@exon_start-exon_end;exon_start-exon_end@exclusionintron_start-exclusionintron_end
+	output_df["chr"] = output_df["exon"].str.split(":", expand = True)[0]
+	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon"].replace(x["chr"] + ":", ""), axis = 1)
+	output_df["exc"] = output_df["intron"].apply(lambda x: x.split(";")[-1])
+	output_df["pos_id"] = \
+		output_df["chr"] + "@" + \
+		output_df["exon_for_posid"] + "@" + \
+		output_df["exc"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["exc"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
+	output_df = output_df.sort_values("exon")
+	output_df = output_df.drop_duplicates(subset = "pos_id", keep = "first")
+	output_df = output_df.reset_index()
+	output_df["event_id_num"] = output_df.index + 1
+	output_df["event_id"] = "MSE_" + output_df["event_id_num"].astype(str)
+	output_df = output_df[["event_id", "pos_id", "mse_n", "exon", "intron", "strand", "gene_id", "gene_name"]]
+
+	# Check if the intron is annotated
+	if reference_gtf_path:
+
+		output_df["label"] = output_df["intron"].apply(lambda x: "annotated" if set(x.split(";")) <= gtf_ref_intron_set else "unannotated")
+
+	else:
+
+		output_df["label"] = "annotated"
+
+	output_df_dict["MSE"] = output_df
+	del output_df
+
+	# end_time = time.time()
+	# print("Multiple skipped exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
+
+	#################################### Alternative first exons (AFE) ####################################
+
+	# start_time = time.time()
+	print("Searching alternative first exons (AFE)....", file = sys.stdout)
+
+	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
+
+		futures = [executor.submit(afe, gtf_dic_split[i]) for i in range(num_process)]
+
+	output_l = []
+
+	for future in concurrent.futures.as_completed(futures):
+
+		output_l += future.result()
+
+	output_df = pd.DataFrame(
+
+		output_l,
+		columns = ["exon_a", "exon_b", "intron_a", "intron_b", "strand", "gene_id", "gene_name"]
+
+	)
+
+	# pos_id = chromosome@exon_start-exon_end;exon_start-exon_end@intron_start-intron_end;intron_start-intron_end
+	output_df["chr"] = output_df["exon_a"].str.split(":", expand = True)[0]
+	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon_a"].replace(x["chr"] + ":", "") + ";" + x["exon_b"].replace(x["chr"] + ":", ""), axis = 1)
+	output_df["intron_for_posid"] = output_df.apply(lambda x: x["intron_a"].replace(x["chr"] + ":", "") + ";" + x["intron_b"].replace(x["chr"] + ":", ""), axis = 1)
+	output_df["pos_id"] = \
+		output_df["chr"] + "@" + \
+		output_df["exon_for_posid"] + "@" + \
+		output_df["intron_for_posid"]
+	output_df = output_df.sort_values(["exon_a", "exon_b"], ascending = [True, True])
+	output_df = output_df.drop_duplicates(subset = "intron_for_posid", keep = "first")
+	output_df = output_df.reset_index()
+	output_df["event_id_num"] = output_df.index + 1
+	output_df["event_id"] = "AFE_" + output_df["event_id_num"].astype(str)
+	output_df = output_df[["event_id", "pos_id", "exon_a", "exon_b", "intron_a", "intron_b", "strand", "gene_id", "gene_name"]]
+
+	# Check if the intron is annotated
+	if reference_gtf_path:
+
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) else "unannotated", axis = 1)
+
+	else:
+
+		output_df["label"] = "annotated"
+
+	output_df_dict["AFE"] = output_df
+	del output_df
+
+	# end_time = time.time()
+	# print("Alternative first exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
+
+	################################### Alternative last exons (ALE) ###################################
+
+	# start_time = time.time()
+	print("Searching alternative last exons (ALE)....", file = sys.stdout)
+
+	with concurrent.futures.ProcessPoolExecutor(max_workers=num_process) as executor:
+
+		futures = [executor.submit(ale, gtf_dic_split[i]) for i in range(num_process)]
+
+	output_l = []
+
+	for future in concurrent.futures.as_completed(futures):
+
+		output_l += future.result()
+
+	output_df = pd.DataFrame(
+
+		output_l,
+		columns = ["exon_a", "exon_b", "intron_a", "intron_b", "strand", "gene_id", "gene_name"]
+
+	)
+
+	# pos_id = chromosome@exon_start-exon_end;exon_start-exon_end@intron_start-intron_end;intron_start-intron_end
+	output_df["chr"] = output_df["exon_a"].str.split(":", expand = True)[0]
+	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon_a"].replace(x["chr"] + ":", "") + ";" + x["exon_b"].replace(x["chr"] + ":", ""), axis = 1)
+	output_df["intron_for_posid"] = output_df.apply(lambda x: x["intron_a"].replace(x["chr"] + ":", "") + ";" + x["intron_b"].replace(x["chr"] + ":", ""), axis = 1)
+	output_df["pos_id"] = \
+		output_df["chr"] + "@" + \
+		output_df["exon_for_posid"] + "@" + \
+		output_df["intron_for_posid"]
+	output_df = output_df.sort_values(["exon_a", "exon_b"], ascending = [True, True])
+	output_df = output_df.drop_duplicates(subset = "intron_for_posid", keep = "first")
+	output_df = output_df.reset_index()
+	output_df["event_id_num"] = output_df.index + 1
+	output_df["event_id"] = "ALE_" + output_df["event_id_num"].astype(str)
+	output_df = output_df[["event_id", "pos_id", "exon_a", "exon_b", "intron_a", "intron_b", "strand", "gene_id", "gene_name"]]
+
+	# Check if the intron is annotated
+	if reference_gtf_path:
+
+		output_df["label"] = output_df.apply(lambda x: "annotated" if (x["intron_a"] in gtf_ref_intron_set) and (x["intron_b"] in gtf_ref_intron_set) else "unannotated", axis = 1)
+
+	else:
+
+		output_df["label"] = "annotated"
+
+	output_df_dict["ALE"] = output_df
+	del output_df
+
+	# end_time = time.time()
+	# print("Alternative last exons search time: " + str(end_time - start_time) + " seconds", file = sys.stdout)
+
+	#################################### Event search end #########################################
+
+	### Export
 	os.makedirs(output_dir, exist_ok = True)
-	SE_output_df.to_csv(
 
-		output_dir + "/EVENT_SE.txt",
-		sep = "\t",
-		index = False
+	for EVENT in output_df_dict.keys():
 
-	)
+		output_df_dict[EVENT].to_csv(
 
-	FIVE_output_df.to_csv(
+			output_dir + "/EVENT_" + EVENT + ".txt",
+			sep = "\t",
+			index = False
 
-		output_dir + "/EVENT_FIVE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	THREE_output_df.to_csv(
-
-		output_dir + "/EVENT_THREE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	MXE_output_df.to_csv(
-
-		output_dir + "/EVENT_MXE.txt",
-		sep = "\t",
-		index = False
-
-	)
-
-	RI_output_df.to_csv(
-
-		output_dir + "/EVENT_RI.txt",
-		sep = "\t",
-		index = False
-
-	)
+		)
 
 	print("Done!", file = sys.stdout)
 
 if __name__ == '__main__':
 
 	main()
-
