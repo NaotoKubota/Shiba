@@ -1,7 +1,7 @@
 [![DOI](https://zenodo.org/badge/801784656.svg)](https://zenodo.org/doi/10.5281/zenodo.11214807)
 [![GitHub Release](https://img.shields.io/github/v/release/NaotoKubota/Shiba?style=flat)](https://github.com/NaotoKubota/Shiba/releases)
-
-[![dockeri.co](https://dockerico.blankenship.io/image/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
+![Docker Pulls](https://img.shields.io/docker/pulls/naotokubota/shiba)
+![Docker Image Size](https://img.shields.io/docker/image-size/naotokubota/shiba)
 
 # Shiba
 
@@ -16,7 +16,7 @@ A unified computational method for robust identification of differential RNA spl
 ## Installation
 
 ```bash
-docker pull naotokubota/shiba:0.2
+docker pull naotokubota/shiba
 ```
 
 ## Usage
