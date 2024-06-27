@@ -17,7 +17,8 @@ rule gtf2event:
     input:
         gtf = config["gtf"]
     output:
-        directory("events")
+        events = directory("events"),
+        events_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
     threads:
         workflow.cores
     benchmark:
@@ -30,7 +31,7 @@ rule gtf2event:
         """
         python {params.base_dir}/src/gtf2event.py \
         -i {input.gtf} \
-        -o {output} \
+        -o {output.events} \
         -p {threads} >& {log}
         """
 
@@ -55,7 +56,7 @@ rule sc2junc:
 rule scpsi:
     input:
         junc = "junctions/junctions.bed",
-        event = "events"
+        events_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
     output:
         results = directory("results"),
         PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
@@ -79,6 +80,6 @@ rule scpsi:
         --onlypsi {config[only_psi]} \
         --excel {config[excel]} \
         {input.junc} \
-        {input.event} \
+        events \
         {output.results} >& {log}
         """
