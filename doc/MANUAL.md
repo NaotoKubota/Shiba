@@ -569,8 +569,6 @@ gtf:
   /path/to/Mus_musculus.GRCm38.102.gtf
 experiment_table:
   /path/to/experiment.tsv
-cpu:
-  16
 unannotated:
   True
 
@@ -751,8 +749,6 @@ gtf:
   /path/to/Mus_musculus.GRCm38.102.gtf
 experiment_table:
   /path/to/experiment.tsv
-cpu:
-  16
 
 # PSI calculation
 only_psi:

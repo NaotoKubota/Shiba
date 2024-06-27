@@ -1,13 +1,11 @@
 workdir:
   /path/to/workdir/output
 container:
-  docker://naotokubota/shiba:0.2
+  docker://naotokubota/shiba
 gtf:
   /path/to/workdir/annotation.gtf
 experiment_table:
   /path/to/workdir/Shiba_experiment.tsv
-cpu:
-  16
 
 # PSI calculation
 only_psi:
