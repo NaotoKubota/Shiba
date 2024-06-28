@@ -448,11 +448,11 @@ def mse(gtf_dic) -> list:
 					for x1, y_mse_n_1 in itertools.product(x1_list, y_mse_n_1_list):
 
 						all_inclusion_introns = [chr + ":" + str(x1) + "-" + str(exon_start_in_transcript[idx_list[0]])] # inc1 (first intron)
-						for i in range(mse_n - 2): # inc2 to inc(mse_n)
+						for i in range(mse_n - 1): # inc2 to inc(mse_n)
 							all_inclusion_introns += [chr + ":"
-								+ str(exon_end_in_transcript[idx_list[i + 1]])
+								+ str(exon_end_in_transcript[idx_list[i]])
 								+ "-"
-								+ str(exon_start_in_transcript[idx_list[i + 2]])
+								+ str(exon_start_in_transcript[idx_list[i + 1]])
 							]
 						all_inclusion_introns += [chr + ":" + str(exon_end_in_transcript[idx_list[mse_n - 1]]) + "-" + str(y_mse_n_1)] # inc(mse_n+1)
 						exc = chr + ":" + str(x1) + "-" + str(y_mse_n_1)
