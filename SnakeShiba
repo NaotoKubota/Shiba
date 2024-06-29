@@ -295,9 +295,11 @@ rule deseq2:
         "benchmark/expression/DESeq2.txt"
     log:
         "log/expression/DESeq2.log"
+    params:
+        base_dir = base_dir
     shell:
         """
-        python /rhome/naotok/Shiba-dev/deseq2_snakemake.py \
+        python {params.base_dir}/src/deseq2_snakemake.py \
         --count {input.counts} \
         --experiment-table {config[experiment_table]} \
         --reference {config[reference_group]} \
