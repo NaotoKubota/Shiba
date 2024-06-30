@@ -1,5 +1,5 @@
 ###############################################################
-# Dockerfile to build container images for Shiba (v0.2.1)
+# Dockerfile to build container images for Shiba (v0.2.2)
 # Based on python 3.11-buster
 ################################################################
 
@@ -47,7 +47,8 @@ RUN R -e "install.packages('BiocManager', repos = 'http://cran.us.r-project.org'
 RUN /usr/local/bin/python -m pip install --upgrade pip && \
     pip install pandas==1.5.3 statsmodels==0.13.5 matplotlib==3.6.3 \
 	seaborn==0.12.2 numexpr==2.8.4 styleframe==4.1 plotly==5.13.0 dash==2.8.1 \
-	pysam==0.21.0 scanpy==1.9.5
+	pysam==0.21.0 scanpy==1.9.5 \
+	numpy==1.26.4
 
 # Install Samtools (version 1.16.1)
 RUN cd /opt_shiba && \
@@ -86,7 +87,7 @@ RUN cd /opt_shiba && \
 
 # Install Shiba
 RUN cd /opt_shiba && \
-	git clone https://github.com/NaotoKubota/Shiba.git -b v0.2.1 && \
+	git clone https://github.com/NaotoKubota/Shiba.git -b v0.2.2 && \
 	cd Shiba && \
 	chmod a+x Shiba scShiba
 
