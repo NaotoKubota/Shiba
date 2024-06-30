@@ -2,6 +2,16 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.2.2] - 2024-06-30
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix `numpy` dependency in the Docker image to `1.26.4`
+
 ## [v0.2.1] - 2024-06-29
 
 ### Added
