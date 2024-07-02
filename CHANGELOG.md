@@ -19,6 +19,26 @@ All notable changes to this Shiba project will be documented in this file.
 
 - Fixed minor bugs in `SnakeScShiba`
 
+## [v0.2.2] - 2024-06-30
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix `numpy` dependency in the Docker image to `1.26.4`
+
+## [v0.2.1] - 2024-06-29
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix the bug in `SnakeShiba` ([#7](https://github.com/NaotoKubota/Shiba/issues/7))
+
 ## [v0.2] - 2024-06-17
 
 ### Added

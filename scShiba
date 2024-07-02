@@ -5,7 +5,6 @@ export LC_ALL=C
 
 VERSION="v0.3"
 
-
 function usage {
     cat << EOS
 
