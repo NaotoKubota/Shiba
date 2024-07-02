@@ -6,7 +6,7 @@ export LC_ALL=C
 function usage {
     cat <<EOS
 
-Usage: $(basename "$0") -i experiment.txt -r RI_EVENT.txt -o junctions.bed -p [VALUE] -a [VALUE] -m [VALUE] -M [VALUE] -s [VALUE]
+Usage: $(basename "$0") -i experiment.tsv -r RI_EVENT.txt -o junctions.bed -p [VALUE] -a [VALUE] -m [VALUE] -M [VALUE] -s [VALUE]
 
     -h  Display help
     -i  Experiment table

@@ -23,7 +23,8 @@ base_dir = os.path.dirname(workflow.snakefile)
 
 rule all:
     input:
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        event_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         tpm = "results/expression/TPM.txt",
         cpm = "results/expression/CPM.txt",
         counts = "results/expression/counts.txt",
@@ -82,7 +83,8 @@ rule gtf2event:
         assembled_gtf = "annotation/assembled.gtf",
         gtf = config["gtf"]
     output:
-        directory("events")
+        events = directory("events"),
+        events_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"])
     threads:
         workflow.cores
     benchmark:
@@ -96,7 +98,7 @@ rule gtf2event:
         python {params.base_dir}/src/gtf2event.py \
         -i {input.assembled_gtf} \
         -r {input.gtf} \
-        -o {output} \
+        -o {output.events} \
         -p {threads} >& {log}
         """
 
@@ -188,10 +190,10 @@ rule merge_junc:
 rule psi:
     input:
         junc = "junctions/junctions.bed",
-        event = "events"
+        events_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"])
     output:
         results = directory("results/splicing"),
-        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI"]),
+        PSI = expand("results/splicing/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         PSI_matrix_sample = "results/splicing/PSI_matrix_sample.txt"
     threads:
         1
@@ -217,7 +219,7 @@ rule psi:
         --onlypsi-group False \
         --excel {config[excel]} \
         {input.junc} \
-        {input.event} \
+        events \
         {output.results} >& {log}
         """
 
