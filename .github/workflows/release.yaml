@@ -11,6 +11,9 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
+    outputs:
+      NEW_TAG: ${{ steps.tag_version.outputs.NEW_TAG }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2

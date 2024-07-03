@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +26,10 @@ jobs:
 
       - name: Extract version tag
         id: extract_tag
-        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+        run: echo ::set-output name=TAG::${{ github.event.workflow_run.outputs.NEW_TAG }}
+
+      - name: Debug TAG
+        run: echo "The tag is ${{ steps.extract_tag.outputs.TAG }}"
 
       - name: Build and push Docker image with tag
         run: |
