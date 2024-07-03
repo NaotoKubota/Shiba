@@ -2,7 +2,7 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
-## [v0.3.1] - 2024-07-??
+## [v0.3.1] - 2024-07-03
 
 ### Added
 
