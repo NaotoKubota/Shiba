@@ -41,10 +41,15 @@ jobs:
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
           sed -i "s/VERSION=\"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION=\"${NEW_VERSION}\"/" scShiba
 
+      - name: Update Dockerfile with new version
+        run: |
+          NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
+          sed -i "s/v[0-9]*\.[0-9]*\.[0-9]*/${NEW_VERSION}/" docker/Dockerfile
+
       - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add README.md Shiba scShiba
+          git add README.md Shiba scShiba docker/Dockerfile
           git commit -m "actions: Ready for ${{ steps.read_version.outputs.NEW_VERSION }}"
           git push origin HEAD:${{ steps.get_branch.outputs.BRANCH_NAME }}
