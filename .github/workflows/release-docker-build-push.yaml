@@ -1,4 +1,4 @@
-name: Create Release
+name: Create Release and Build Docker Image
 
 on:
   pull_request:
@@ -7,12 +7,9 @@ on:
       - github-actions-test
 
 jobs:
-  create-release:
+  create-release-and-build:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
-    outputs:
-      NEW_TAG: ${{ steps.tag_version.outputs.NEW_TAG }}
 
     steps:
       - name: Checkout repository
@@ -37,7 +34,7 @@ jobs:
           VERSION: ${{ steps.get_tag.outputs.tag }}
 
       - name: Debug NEW_TAG
-        run: echo "The new tag is ${{ steps.tag_version.outputs.NEW_TAG }}"
+        run: echo "The new tag is $NEW_TAG"
 
       - name: Create GitHub release
         id: create_release
@@ -50,3 +47,19 @@ jobs:
           body: ${{ github.event.pull_request.body }}
           draft: false
           prerelease: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push Docker image with tag
+        run: |
+          TAG=${{ steps.tag_version.outputs.NEW_TAG }}
+          docker build -t naotokubota/shiba:$TAG -t naotokubota/shiba:latest -f docker/Dockerfile .
+          docker push naotokubota/shiba:$TAG
+          docker push naotokubota/shiba:latest
