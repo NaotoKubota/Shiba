@@ -6,7 +6,7 @@ on:
     types:
       - completed
     branches:
-      - github-actions-test
+      - develop
 
 jobs:
   build-and-push:
