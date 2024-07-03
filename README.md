@@ -4,7 +4,7 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/naotokubota/shiba)
 ![Docker Image Size](https://img.shields.io/docker/image-size/naotokubota/shiba)
 
-# Shiba
+# Shiba (v0.3.1)
 
 A unified computational method for robust identification of differential RNA splicing.
 
