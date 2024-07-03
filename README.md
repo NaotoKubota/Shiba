@@ -16,6 +16,8 @@ A unified computational method for robust identification of differential RNA spl
 
 ## Installation
 
+A docker image is available at [Docker Hub](https://hub.docker.com/r/naotokubota/shiba).
+
 ```bash
 docker pull naotokubota/shiba
 ```
