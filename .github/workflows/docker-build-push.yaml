@@ -5,6 +5,8 @@ on:
     workflows: ["Create Release"]
     types:
       - completed
+    branches:
+      - github-actions-test
 
 jobs:
   build-and-push:
