@@ -33,12 +33,10 @@ jobs:
 
       - name: Create GitHub release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1.1.0
         with:
           tag_name: ${{ steps.tag_version.outputs.NEW_TAG }}
           release_name: ${{ steps.tag_version.outputs.NEW_TAG }}
-          body: |
-            ${{ github.event.pull_request.body }}
+          body: ${{ github.event.pull_request.body }}
           draft: false
           prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
