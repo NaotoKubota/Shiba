@@ -1,0 +1,43 @@
+name: Create Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - github-actions-test
+
+jobs:
+  create-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get the latest tag
+        id: get_tag
+        run: echo ::set-output name=tag::$(git describe --tags `git rev-list --tags --max-count=1`)
+
+      - name: Bump version and push tag
+        id: tag_version
+        run: |
+          NEW_TAG=$(cat VERSION)
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -a $NEW_TAG -m "Release $NEW_TAG"
+          git push origin $NEW_TAG
+        env:
+          VERSION: ${{ steps.get_tag.outputs.tag }}
+
+      - name: Create GitHub release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.tag_version.outputs.NEW_TAG }}
+          release_name: ${{ steps.tag_version.outputs.NEW_TAG }}
+          body: |
+            ${{ github.event.pull_request.body }}
+          draft: false
+          prerelease: true
+          token: ${{ secrets.GITHUB_TOKEN }}
