@@ -46,4 +46,4 @@ jobs:
           release_name: ${{ steps.tag_version.outputs.NEW_TAG }}
           body: ${{ github.event.pull_request.body }}
           draft: false
-          prerelease: true
+          prerelease: false
