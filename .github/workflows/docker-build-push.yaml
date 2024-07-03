@@ -2,11 +2,9 @@ name: Build and Push Docker Image
 
 on:
   workflow_run:
-    workflows: ["Create Release"]
-    types:
-      - completed
-    branches:
-      - develop
+    workflows: [Create Release]
+    types: [completed]
+    branches: [develop]
 
 jobs:
   build-and-push:
