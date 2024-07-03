@@ -1,5 +1,6 @@
 [![DOI](https://zenodo.org/badge/801784656.svg)](https://zenodo.org/doi/10.5281/zenodo.11214807)
 [![GitHub Release](https://img.shields.io/github/v/release/NaotoKubota/Shiba?style=flat)](https://github.com/NaotoKubota/Shiba/releases)
+![Create Release and Build Docker Image](https://github.com/NaotoKubota/Shiba/actions/workflows/release-docker-build-push.yaml/badge.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/naotokubota/shiba)
 ![Docker Image Size](https://img.shields.io/docker/image-size/naotokubota/shiba)
 
