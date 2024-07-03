@@ -2,6 +2,16 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.3.1] - 2024-07-??
+
+### Added
+
+- Add GitHub actions for automatic tag creation and release, and Docker image build and push.
+
+### Changed
+
+### Fixed
+
 ## [v0.3] - 2024-07-02
 
 ### Added

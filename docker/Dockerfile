@@ -1,5 +1,5 @@
 ###############################################################
-# Dockerfile to build container images for Shiba (v0.3)
+# Dockerfile to build container images for Shiba (pre-v0.3.1)
 # Based on python 3.11-buster
 ################################################################
 
@@ -87,7 +87,7 @@ RUN cd /opt_shiba && \
 
 # Install Shiba
 RUN cd /opt_shiba && \
-	git clone https://github.com/NaotoKubota/Shiba.git -b v0.3 && \
+	git clone https://github.com/NaotoKubota/Shiba.git -b pre-v0.3.1 && \
 	cd Shiba && \
 	chmod a+x Shiba scShiba
 
