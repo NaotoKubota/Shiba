@@ -2,6 +2,11 @@
 
 This document provides a manual for Shiba and scShiba for users who want to analyze differential RNA splicing events from bulk and single-cell RNA-seq data.
 
+- [Shiba](#shiba)
+- [SnakeShiba](#snakeshiba)
+- [scShiba](#scshiba)
+- [SnakeScShiba](#snakescshiba)
+
 ## Shiba
 
 ### Before you start
@@ -147,11 +152,9 @@ The output directory contains the following sub directories:
 - `PSI_matrix_[sample,group].txt`: PSI values of each event for all samples or groups. Blank cells indicate that the event did not pass the minimum read count threshold.
 - `summary.txt`: Numbers of the differentially spliced events for each splicing and event type.
 
-<details>
+##### Column description of PSI_[SE,FIVE,THREE,MXE,RI,MSE,AFE,ALE].txt
 
-<summary>Column description of PSI_[SE,FIVE,THREE,MXE,RI,MSE,AFE,ALE].txt</summary>
-
-##### Common across all files
+###### Common across all files
 
 - **event_id**: ID of the event.
 - **pos_id**: Positional ID of the event. This is useful for comparing the same event across different Shiba runs.
@@ -165,7 +168,7 @@ The output directory contains the following sub directories:
 - **q**: *P*-value of Fisher's exact test adjusted by the Benjamini-Hochberg method.
 - **Diff events**: Flag of if the event is differentially spliced between the reference and alternative groups (*Yes* or *No*).
 
-##### For `PSI_SE.txt` (Skipped exon)
+###### For `PSI_SE.txt` (Skipped exon)
 
 <img src="../img/SE.png" width=50%>
 
@@ -185,7 +188,7 @@ The output directory contains the following sub directories:
 - **p_junction_b**: *P*-value of Fisher's exact test for the junction read counts of the right-side inclusive intron to those of the exclusive intron, reference group against alternative group.
 - **p_maximum**: Greater of the two *P*-values of Fisher's exact tests.
 
-##### For `PSI_FIVE.txt` (Alternative 5' splice site) and `PSI_THREE.txt` (Alternative 3' splice site)
+###### For `PSI_FIVE.txt` (Alternative 5' splice site) and `PSI_THREE.txt` (Alternative 3' splice site)
 
 <img src="../img/FIVE_THREE.png" width=50%>
 
@@ -200,7 +203,7 @@ The output directory contains the following sub directories:
 - **OR**: Odds ratio comparing junction read counts of the intron associated with the longer exon to those of the intron associated with the shorter exon, reference group against alternative group.
 - **p**: *P*-value of Fisher's exact test for the junction read counts of the intron associated with the longer exon to those of the intron associated with the shorter exon, reference group against alternative group.
 
-##### For `PSI_MXE.txt` (Mutually exclusive exons)
+###### For `PSI_MXE.txt` (Mutually exclusive exons)
 
 <img src="../img/MXE.png" width=50%>
 
@@ -229,7 +232,7 @@ The output directory contains the following sub directories:
 - **p_a2b2**: Odds ratio comparing junction read counts of the right-side inclusive intron of the left-side mutually exclusive exon to those of the right-side inclusive intron of the right-side mutually exclusive exon, reference group against alternative group.
 - **p_maximum**: Greater of the four *P*-values of Fisher's exact tests.
 
-##### For `PSI_RI.txt` (Retained intron)
+###### For `PSI_RI.txt` (Retained intron)
 
 <img src="../img/RI.png" width=50%>
 
@@ -247,7 +250,7 @@ The output directory contains the following sub directories:
 - **p_junction_a_end**: *P*-value of Fisher's exact test for the right-side exon-intron junction read counts to the intron junction read counts, reference group against alternative group.
 - **p_maximum**: Greater of the two *P*-values of Fisher's exact tests.
 
-##### For `PSI_MSE.txt` (Multiple skipped exons)
+###### For `PSI_MSE.txt` (Multiple skipped exons)
 
 <img src="../img/MSE.png" width=70%>
 
@@ -259,7 +262,7 @@ The output directory contains the following sub directories:
 - **OR_junction**: Odds ratio comparing junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `9.927579014743532;9.166748676363493`).
 - **p_juntion**: *P*-value of Fisher's exact test for the junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `1.1031362512301498e-138;2.0130937584324167e-126`).
 
-##### For `PSI_AFE.txt` (Alternative first exon) and `PSI_ALE.txt` (Alternative last exon)
+###### For `PSI_AFE.txt` (Alternative first exon) and `PSI_ALE.txt` (Alternative last exon)
 
 <img src="../img/AFE_ALE.png" width=50%>
 
@@ -274,12 +277,10 @@ The output directory contains the following sub directories:
 - **OR**: Odds ratio comparing junction read counts of the intron associated with the distal exon to those of the intron associated with the proximal exon, reference group against alternative group.
 - **p**: *P*-value of Fisher's exact test for the junction read counts of the intron associated with the distal exon to those of the intron associated with the proximal exon, reference group against alternative group.
 
-##### when `ttest` is `true`
+###### when `ttest` is `true`
 
 - \<sample\>_PSI: PSI of the sample. Blank cells indicate that the event did not pass the minimum read count threshold.
 - p_ttest: *P*-value of Welch's t-test for the PSI of the reference and alternative groups. Please note that the *P*-value is not adjusted for multiple testing.
-
-</details>
 
 #### Files in `results/expression`
 
@@ -420,15 +421,15 @@ Example of `event_SE.txt`:
 
 ```bash
 event_id  pos_id  exon  intron_a  intron_b  intron_c  strand  gene_id  gene_name  label
-SE_1  GL456354.1@84521-85111@83560-85765  GL456354.1:84521-85111  GL456354.1:83560-84521  GL456354.1:85111-85765  GL456354.1:83560-85765  -  ENSMUSG00000094337  Gm3286  annotated
-SE_2  chr10@100080857-100080940@100080130-100087347  chr10:100080857-100080940  chr10:100080130-100080857  chr10:100080940-100087347  chr10:100080130-100087347  +  ENSMUSG00000019966  Kitl  annotated
-SE_3  chr10@100485051-100485125@100478022-100487162  chr10:100485051-100485125  chr10:100478022-100485051  chr10:100485125-100487162  chr10:100478022-100487162  -  ENSMUSG00000036676  Tmtc3  annotated
-SE_4  chr10@100485051-100485185@100478022-100487162  chr10:100485051-100485185  chr10:100478022-100485051  chr10:100485185-100487162  chr10:100478022-100487162  -  ENSMUSG00000036676  Tmtc3  annotated
-SE_5  chr10@100495641-100495661@100494954-100495823  chr10:100495641-100495661  chr10:100494954-100495641  chr10:100495661-100495823  chr10:100494954-100495823  +  ENSMUSG00000019971  Cep290  annotated
-SE_6  chr10@100578315-100578431@100577358-100583914  chr10:100578315-100578431  chr10:100577358-100578315  chr10:100578431-100583914  chr10:100577358-100583914  -  ENSMUSG00000046567  4930430F08Rik  annotated
-SE_7  chr10@100582263-100582322@100578431-100583914  chr10:100582263-100582322  chr10:100578431-100582263  chr10:100582322-100583914  chr10:100578431-100583914  -  ENSMUSG00000046567  4930430F08Rik  annotated
-SE_8  chr10@100594537-100594656@100592429-100595035  chr10:100594537-100594656  chr10:100592429-100594537  chr10:100594656-100595035  chr10:100592429-100595035  +  ENSMUSG00000056912  1700017N19Rik  annotated
-SE_9  chr10@100610596-100610715@100609254-100612429  chr10:100610596-100610715  chr10:100609254-100610596  chr10:100610715-100612429  chr10:100609254-100612429  +  ENSMUSG00000056912  1700017N19Rik  annotated
+SE_1  SE@GL456354.1@84521-85111@83560-85765  GL456354.1:84521-85111  GL456354.1:83560-84521  GL456354.1:85111-85765  GL456354.1:83560-85765  -  ENSMUSG00000094337  Gm3286  annotated
+SE_2  SE@chr10@100080857-100080940@100080130-100087347  chr10:100080857-100080940  chr10:100080130-100080857  chr10:100080940-100087347  chr10:100080130-100087347  +  ENSMUSG00000019966  Kitl  annotated
+SE_3  SE@chr10@100485051-100485125@100478022-100487162  chr10:100485051-100485125  chr10:100478022-100485051  chr10:100485125-100487162  chr10:100478022-100487162  -  ENSMUSG00000036676  Tmtc3  annotated
+SE_4  SE@chr10@100485051-100485185@100478022-100487162  chr10:100485051-100485185  chr10:100478022-100485051  chr10:100485185-100487162  chr10:100478022-100487162  -  ENSMUSG00000036676  Tmtc3  annotated
+SE_5  SE@chr10@100495641-100495661@100494954-100495823  chr10:100495641-100495661  chr10:100494954-100495641  chr10:100495661-100495823  chr10:100494954-100495823  +  ENSMUSG00000019971  Cep290  annotated
+SE_6  SE@chr10@100578315-100578431@100577358-100583914  chr10:100578315-100578431  chr10:100577358-100578315  chr10:100578431-100583914  chr10:100577358-100583914  -  ENSMUSG00000046567  4930430F08Rik  annotated
+SE_7  SE@chr10@100582263-100582322@100578431-100583914  chr10:100582263-100582322  chr10:100578431-100582263  chr10:100582322-100583914  chr10:100578431-100583914  -  ENSMUSG00000046567  4930430F08Rik  annotated
+SE_8  SE@chr10@100594537-100594656@100592429-100595035  chr10:100594537-100594656  chr10:100592429-100594537  chr10:100594656-100595035  chr10:100592429-100595035  +  ENSMUSG00000056912  1700017N19Rik  annotated
+SE_9  SE@chr10@100610596-100610715@100609254-100612429  chr10:100610596-100610715  chr10:100609254-100610596  chr10:100610715-100612429  chr10:100609254-100612429  +  ENSMUSG00000056912  1700017N19Rik  annotated
 ...
 ```
 

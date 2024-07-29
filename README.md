@@ -6,13 +6,19 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
 [![Docker Image Size](https://img.shields.io/docker/image-size/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
 
-# Shiba (v0.3.1)
+# Shiba (v0.3.1) <img src="img/Shiba_icon.png" width=30% align="right">
 
-A unified computational method for robust identification of differential RNA splicing.
+A unified computational method for robust identification of differential RNA splicing. Shiba/scShiba can quantify and identify differential splicing events (DSEs) from short-read bulk RNA-seq data and single-cell RNA-seq data. Shiba and scShiba are also implemented as [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflows, SnakeShiba and SnakeScShiba, respectively.
 
-<img src="img/Shiba_icon.png" width=50%>
+See [CHANGELOG.md](https://github.com/NaotoKubota/Shiba/blob/main/CHANGELOG.md) for the latest updates.
 
 ## Overview
+
+Shiba comprises four main steps:
+1. **Transcript assembly**: Assemble transcripts from RNA-seq reads using [StringTie2](https://github.com/skovaka/stringtie2)
+2. **Splicing event identification**: Identify alternative mRNA splicing events from assembled transcripts
+3. **Read counting**: Count reads mapped to each splicing event using [RegTools](https://github.com/griffithlab/regtools) and [featureCounts](https://subread.sourceforge.net/)
+4. **Statistical analysis**: Identify DSEs based on Fisher's exact test
 
 <img src="img/Shiba_overview.png" width=75%>
 

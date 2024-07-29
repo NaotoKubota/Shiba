@@ -1,3 +1,6 @@
+
+VERSION = "v0.3.1"
+
 '''
 SnakeScShiba: A snakemake-based workflow of scShiba
 
@@ -13,6 +16,19 @@ rule all:
     input:
         event_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
         PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
+    params:
+        version = VERSION
+    shell:
+        """
+        echo \
+        '
+
+            All analysis finished successfully!
+            SnakeScShiba version: {params.version}
+            https://github.com/NaotoKubota/Shiba
+
+        '
+        """
 
 rule gtf2event:
     input:
