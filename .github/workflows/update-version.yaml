@@ -41,6 +41,16 @@ jobs:
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
           sed -i "s/VERSION=\"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION=\"${NEW_VERSION}\"/" scShiba
 
+      - name: Update SnakeShiba with new version
+        run: |
+          NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
+          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" SnakeShiba
+
+      - name: Update SnakeScShiba with new version
+        run: |
+          NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
+          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" SnakeScShiba
+
       - name: Update Dockerfile with new version
         run: |
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
