@@ -1207,6 +1207,7 @@ def main():
 	)
 
 	output_df["pos_id"] = \
+		"SE@" + \
 		output_df["exon"].str.split(":", expand = True)[0].astype(str) + "@" + \
 		output_df["exon"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["exon"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str) + "@" + \
 		output_df["intron_c"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_c"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
@@ -1253,6 +1254,7 @@ def main():
 	)
 
 	output_df["pos_id"] = \
+		"FIVE@" + \
 		output_df["intron_a"].str.split(":", expand = True)[0].astype(str) + "@" + \
 		output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str) + "@" + \
 		output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
@@ -1299,6 +1301,7 @@ def main():
 	)
 
 	output_df["pos_id"] = \
+		"THREE@" + \
 		output_df["intron_a"].str.split(":", expand = True)[0].astype(str) + "@" + \
 		output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str) + "@" + \
 		output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
@@ -1345,6 +1348,7 @@ def main():
 	)
 
 	output_df["pos_id"] = \
+		"MXE@" + \
 		output_df["intron_a1"].str.split(":", expand = True)[0].astype(str) + "@" + \
 		output_df["intron_a1"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "@" + \
 		output_df["exon_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["exon_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str) + "@" + \
@@ -1393,6 +1397,7 @@ def main():
 	)
 
 	output_df["pos_id"] = \
+		"RI@" + \
 		output_df["intron_a"].str.replace(":", "@")
 	output_df = output_df.sort_values("exon_a")
 	output_df = output_df.drop_duplicates(subset = "pos_id", keep = "first")
@@ -1441,6 +1446,7 @@ def main():
 	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon"].replace(x["chr"] + ":", ""), axis = 1)
 	output_df["exc"] = output_df["intron"].apply(lambda x: x.split(";")[-1])
 	output_df["pos_id"] = \
+		"MSE@" + \
 		output_df["chr"] + "@" + \
 		output_df["exon_for_posid"] + "@" + \
 		output_df["exc"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["exc"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
@@ -1488,14 +1494,13 @@ def main():
 
 	)
 
-	# pos_id = chromosome@exon_start-exon_end;exon_start-exon_end@intron_start-intron_end;intron_start-intron_end
-	output_df["chr"] = output_df["exon_a"].str.split(":", expand = True)[0]
-	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon_a"].replace(x["chr"] + ":", "") + ";" + x["exon_b"].replace(x["chr"] + ":", ""), axis = 1)
-	output_df["intron_for_posid"] = output_df.apply(lambda x: x["intron_a"].replace(x["chr"] + ":", "") + ";" + x["intron_b"].replace(x["chr"] + ":", ""), axis = 1)
 	output_df["pos_id"] = \
-		output_df["chr"] + "@" + \
-		output_df["exon_for_posid"] + "@" + \
-		output_df["intron_for_posid"]
+		"AFE@" + \
+		output_df["intron_a"].str.split(":", expand = True)[0].astype(str) + "@" + \
+		output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str) + "@" + \
+		output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
+	output_df["chr"] = output_df["exon_a"].str.split(":", expand = True)[0]
+	output_df["intron_for_posid"] = output_df.apply(lambda x: x["intron_a"].replace(x["chr"] + ":", "") + ";" + x["intron_b"].replace(x["chr"] + ":", ""), axis = 1)
 	output_df = output_df.sort_values(["exon_a", "exon_b"], ascending = [True, True])
 	output_df = output_df.drop_duplicates(subset = "intron_for_posid", keep = "first")
 	output_df = output_df.reset_index()
@@ -1540,14 +1545,13 @@ def main():
 
 	)
 
-	# pos_id = chromosome@exon_start-exon_end;exon_start-exon_end@intron_start-intron_end;intron_start-intron_end
-	output_df["chr"] = output_df["exon_a"].str.split(":", expand = True)[0]
-	output_df["exon_for_posid"] = output_df.apply(lambda x: x["exon_a"].replace(x["chr"] + ":", "") + ";" + x["exon_b"].replace(x["chr"] + ":", ""), axis = 1)
-	output_df["intron_for_posid"] = output_df.apply(lambda x: x["intron_a"].replace(x["chr"] + ":", "") + ";" + x["intron_b"].replace(x["chr"] + ":", ""), axis = 1)
 	output_df["pos_id"] = \
-		output_df["chr"] + "@" + \
-		output_df["exon_for_posid"] + "@" + \
-		output_df["intron_for_posid"]
+		"ALE@" + \
+		output_df["intron_a"].str.split(":", expand = True)[0].astype(str) + "@" + \
+		output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_a"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str) + "@" + \
+		output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[0].astype(str) + "-" + output_df["intron_b"].str.split(":", expand = True)[1].str.split("-", expand = True)[1].astype(str)
+	output_df["chr"] = output_df["exon_a"].str.split(":", expand = True)[0]
+	output_df["intron_for_posid"] = output_df.apply(lambda x: x["intron_a"].replace(x["chr"] + ":", "") + ";" + x["intron_b"].replace(x["chr"] + ":", ""), axis = 1)
 	output_df = output_df.sort_values(["exon_a", "exon_b"], ascending = [True, True])
 	output_df = output_df.drop_duplicates(subset = "intron_for_posid", keep = "first")
 	output_df = output_df.reset_index()

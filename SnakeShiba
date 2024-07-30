@@ -1,3 +1,6 @@
+
+VERSION = "v0.4.0"
+
 '''
 SnakeShiba: A snakemake-based workflow of Shiba for differential RNA splicing analysis between two groups of samples
 
@@ -48,6 +51,19 @@ rule all:
         tpm_contribution = "results/pca/tpm_contribution.tsv",
         psi_pca = "results/pca/psi_pca.tsv",
         psi_contribution = "results/pca/psi_contribution.tsv"
+    params:
+        version = VERSION
+    shell:
+        """
+        echo \
+        '
+
+            All analysis finished successfully!
+            SnakeShiba version: {params.version}
+            https://github.com/NaotoKubota/Shiba
+
+        '
+        """
 
 rule bam2gtf:
     wildcard_constraints:

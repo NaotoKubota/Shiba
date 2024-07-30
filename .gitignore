@@ -1,0 +1,3 @@
+lib/__pycache__
+test/*.ipynb
+test/.ipynb_checkpoints
