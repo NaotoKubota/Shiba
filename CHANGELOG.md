@@ -8,11 +8,11 @@ All notable changes to this Shiba project will be documented in this file.
 
 ### Changed
 
-- Add event type (e.g. `SE`, `FIVE`, `THREE`, `MXE`, `RI`, `MSE`, `AFE`, `ALE`) to `pos_id` in events and results files.
+- Add event type (e.g. `SE`, `FIVE`, `THREE`, `MXE`, `RI`, `MSE`, `AFE`, and `ALE`) to `pos_id` in events and results files.
 
 ### Fixed
 
-- Fix a format of `pos_id` of `AFE` nd `ALE` events to be consistent between different runs.
+- Fix a format of `pos_id` of `AFE` and `ALE` events to be consistent between different runs.
 
 ## [v0.3.1] - 2024-07-03
 
