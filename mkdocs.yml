@@ -1,0 +1,100 @@
+site_name: Shiba
+site_description: Shiba documentation
+site_author: Naoto Kubota
+site_url: https://naotokubota/shiba
+copyright: © 2024 Naoto Kubota
+repo_url: https://github.com/NaotoKubota/Shiba
+repo_name: NaotoKubota/Shiba
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+  language: en
+  features:
+    - search.suggest
+    - search.highlight
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.footer
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite
+  - extra
+  - pymdownx.highlight:
+      linenums: true
+      linenums_style: pymdownx.inline
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.betterem:
+      smart_enable: all
+  - attr_list
+  - md_in_html
+
+extra:
+  # consent:
+  #   title: Cookie consent
+  #   description: >-
+  #     We use cookies to recognize your repeated visits and preferences, as well
+  #     as to measure the effectiveness of our documentation and whether users
+  #     find what they're searching for. With your consent, you're helping us to
+  #     make our documentation better.
+  social:
+    - type: "github"
+      icon: fontawesome/brands/github
+      link: "https://github.com/NaotoKubota"
+    - type: "docker"
+      icon: fontawesome/brands/docker
+      link: "https://hub.docker.com/u/naotokubota"
+    - type: "twitter"
+      icon: fontawesome/brands/x-twitter
+      link: "https://twitter.com/naoto_kubota"
+
+edit_uri: edit/main/docs/
+
+nav:
+- Home: index.md
+- Installation: installation.md
+- Quick start:
+  - With bulk RNA-seq data: quickstart/diff_splicing_bulk.md
+  - With single-cell RNA-seq data: quickstart/diff_splicing_sc.md
+- Output:
+  - Shiba/SnakeShiba: output/shiba.md
+  - scShiba/SnakeScShiba: output/scshiba.md
+- Usage:
+  - Shiba: usage/shiba.md
+  - scShiba: usage/scshiba.md
+  - SnakeShiba: usage/snakeshiba.md
+  - SnakeScShiba: usage/snakescshiba.md
