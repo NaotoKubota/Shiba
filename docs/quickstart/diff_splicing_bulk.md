@@ -8,8 +8,8 @@
 
 ## Before you start
 
-- Please perform mapping of RNA-seq reads to the reference genome and generate bam files by software such as [STAR](https://github.com/alexdobin/STAR) and [HISAT2](https://daehwankimlab.github.io/hisat2/).
-- Please download a gene annotataion file of your interest in GTF format.
+- Perform mapping of RNA-seq reads to the reference genome and generate bam files by software such as [STAR](https://github.com/alexdobin/STAR) and [HISAT2](https://daehwankimlab.github.io/hisat2/).
+- Download a gene annotataion file of your interest in GTF format.
 
 Download a mouse gene annotation file (Ensembl 102):
 

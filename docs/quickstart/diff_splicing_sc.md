@@ -8,8 +8,8 @@
 
 ## Before you start
 
-- Please perform mapping of sc(sn)RNA-seq reads to the reference genome using [STARsolo](https://github.com/alexdobin/STAR/blob/master/docs/STARsolo.md).
-- Please download a gene annotataion file of your interest in GTF format.
+- Perform mapping of sc(sn)RNA-seq reads to the reference genome using [STARsolo](https://github.com/alexdobin/STAR/blob/master/docs/STARsolo.md).
+- Download a gene annotataion file of your interest in GTF format.
 
 Download a mouse gene annotation file (Ensembl 102):
 
