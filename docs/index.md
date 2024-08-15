@@ -1,4 +1,4 @@
-# Welcome to Shiba Documentation
+# Shiba
 
 ![SE](https://github.com/NaotoKubota/Shiba/blob/main/img/Shiba_icon.png?raw=true){ align=right width=40% }
 
