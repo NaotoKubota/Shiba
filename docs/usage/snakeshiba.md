@@ -9,7 +9,7 @@ snakemake -s SnakeShiba \
 --rerun-incomplete
 ```
 
-Please check the [Manual](../manual/diff_splicing_bulk.md/#1-prepare-inputs_1){ data-preview } to learn how to prepare the `config.yaml`.
+Please check the [Quick Start](../quickstart/diff_splicing_bulk.md/#1-prepare-inputs_1) to learn how to prepare the `config.yaml`.
 
 <figure markdown="span">
 	![SnakeShiba rulegraph](https://github.com/NaotoKubota/Shiba/blob/mkdocs/img/SnakeShiba_rulegraph.svg?raw=true){ width="500" align="center" }
