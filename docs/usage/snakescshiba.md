@@ -10,3 +10,10 @@ snakemake -s SnakeScShiba \
 ```
 
 Please check the [Manual](../manual/diff_splicing_sc.md/#1-prepare-inputs_1){ data-preview } to learn how to prepare the `config.yaml`.
+
+<figure markdown="span">
+	![SnakeScShiba rulegraph](https://github.com/NaotoKubota/Shiba/blob/mkdocs/img/SnakeScShiba_rulegraph.svg?raw=true){ width="500" align="center" }
+	<figcaption>SnakeScShiba rulegraph</figcaption>
+</figure>
+
+This rulegraph was made by [snakevision](https://github.com/OpenOmics/snakevision).
