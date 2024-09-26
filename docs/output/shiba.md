@@ -148,12 +148,12 @@ The following sub directories are added when **SnakeShiba** is used:
 </figure>
 
 - **mse_n**: Number of skipped exons.
-- **exon**: Genomic coordinates of the skipped exons, separated by semi-colons from the left to the right (e.g., `chr12:76067371-76067473;chr12:76068909-76068994`).
-- **intron**: Genomic coordinates of the associated introns of the skipped exons, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `chr12:76060279-76067371;chr12:76068994-76074203;chr12:76060279-76074203`).
-- **ref_junction**: Junction read counts of the associated introns of the skipped exons in the reference group, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `5899;4581;94`).
-- **alt_junction**: Junction read counts of the associated introns of the skipped exons in the alternative group, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `3856;3243;610`).
-- **OR_junction**: Odds ratio comparing junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `9.927579014743532;9.166748676363493`).
-- **p_juntion**: *P*-value of Fisher's exact test for the junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `1.1031362512301498e-138;2.0130937584324167e-126`).
+- **exon**: Genomic coordinates of the skipped exons, separated by semi-colons from the left to the right (e.g., `chr1:75790152-75790274;chr1:75790446-75790517`).
+- **intron**: Genomic coordinates of the associated introns of the skipped exons, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `chr1:75790057-75790152;chr1:75790274-75790446;chr1:75790517-75791285;chr1:75790057-75791285`).
+- **ref_junction**: Junction read counts of the associated introns of the skipped exons in the reference group, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `25;20;32;489`).
+- **alt_junction**: Junction read counts of the associated introns of the skipped exons in the alternative group, separated by semi-colons from the left to the right and the last one is the exclusive intron (e.g., `386;438;703;598`).
+- **OR_junction**: Odds ratio comparing junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `0.07920361952594382;0.05584036006760605;0.055665610718888085`).
+- **p_juntion**: *P*-value of Fisher's exact test for the junction read counts of the associated inclusive introns of the skipped exons to those of the exclusive intron, reference group against alternative group, separated by semi-colons from the left to the right (e.g., `3.0283773991245187e-54;2.488569122823104e-66;3.7054604961481054e-93`).
 
 ---
 
