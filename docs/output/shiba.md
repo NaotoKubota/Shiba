@@ -128,8 +128,10 @@ The following sub directories are added when **SnakeShiba** is used:
 - **exon_b**: Genomic coordinates of the right-side exon.
 - **exon_c**: Genomic coordinates of the exon containing the retained intron.
 - **intron_a**: Genomic coordinates of the retained intron.
+- **ref_junction_a**: Junction read counts of the intron in the reference group.
 - **ref_junction_a_start**: The left-side exon-intron junction read counts of the retained intron in the reference group.
 - **ref_junction_a_end**: The right-side exon-intron junction read counts of the retained intron in the reference group.
+- **alt_junction_a**: : Junction read counts of the intron in the alternative group.
 - **alt_junction_a_start**: The left-side exon-intron junction read counts of the retained intron in the alternative group.
 - **alt_junction_a_end**: The right-side exon-intron junction read counts of the retained intron in the alternative group.
 - **OR_junction_a_start**: Odds ratio comparing the left-side exon-intron junction read counts to the intron junction read counts, reference group against alternative group.
