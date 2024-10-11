@@ -1661,6 +1661,9 @@ def diff_mse(df, group_list, FDR, dPSI) -> pd.DataFrame:
 
         result_df["q"] = result_df["q"].apply(lambda x: 1e-323 if x == 0 else x)
 
+        # Drop columns
+        result_df = result_df.drop(columns = ["OR_diff_up", "OR_diff_down"])
+
     # Rename columns
     result_df = result_df.rename(columns = {
         group1 + "_junction": "ref_junction",
@@ -1668,9 +1671,6 @@ def diff_mse(df, group_list, FDR, dPSI) -> pd.DataFrame:
         group2 + "_junction": "alt_junction",
         group2 + "_PSI": "alt_PSI"
     })
-
-    # Drop columns
-    result_df = result_df.drop(columns = ["OR_diff_up", "OR_diff_down"])
 
     return(result_df)
 
