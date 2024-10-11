@@ -2,6 +2,16 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.4.1] - 2024-??-??
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix a bug in `shibalib.py`
+
 ## [v0.4.0] - 2024-07-30
 
 ### Added
