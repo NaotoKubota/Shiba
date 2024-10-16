@@ -2,7 +2,7 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
-## [v0.4.1] - 2024-??-??
+## [v0.4.1] - 2024-10-16
 
 ### Added
 
@@ -10,7 +10,7 @@ All notable changes to this Shiba project will be documented in this file.
 
 ### Fixed
 
-- Fix a bug in `shibalib.py`
+- Fix a bug in MSE detection when the number of MSEs is zero.
 
 ## [v0.4.0] - 2024-07-30
 
