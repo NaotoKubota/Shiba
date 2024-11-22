@@ -15,6 +15,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Check for merge commit
+        id: check_merge
+        run: |
+          if [ "$(git rev-list --count HEAD^@)" -gt 1 ]; then
+            echo "This is a merge commit. Skipping workflow."
+            exit 0
+          fi
+
       - name: Read version from VERSION file
         id: read_version
         run: |
@@ -62,6 +70,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add README.md Shiba scShiba docker/Dockerfile
+          git add README.md Shiba scShiba SnakeShiba SnakeScShiba docker/Dockerfile
           git commit -m "actions: Ready for ${{ steps.read_version.outputs.NEW_VERSION }}"
           git push origin HEAD:${{ steps.get_branch.outputs.BRANCH_NAME }}
