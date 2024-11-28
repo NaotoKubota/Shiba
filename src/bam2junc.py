@@ -118,74 +118,69 @@ def process_samples(experiment_file, strand, anchor, min_intron, max_intron, out
 	return junc_files
 
 def merge_junction_files(junc_files, output_file):
-	exon_exon_files = [j[0] for j in junc_files if j[1] == "exon-exon"]
-	exon_intron_files = [j[0] for j in junc_files if j[1] == "exon-intron"]
-
 	def process_junction_files(files, junction_type):
 		logger.info(f"Merging {junction_type} junction files...")
-		result_df = None
+		result_df = []
 		for file in files:
-			sample_name = os.path.basename(file).rstrip("_exon-exon.junc") if junction_type == "exon-exon" else os.path.basename(file).rstrip("_exon-intron.junc")
-			logger.debug(f"Sample name: {sample_name}")
-			df = pd.read_csv(file, sep="\t", comment="#" if junction_type == "exon-intron" else None, header = None, dtype = {0: str})
+			sample_name = os.path.basename(file).rsplit("_", 1)[0]
+			logger.debug(f"Processing sample: {sample_name}")
+
+			df = pd.read_csv(
+				file,
+				sep="\t",
+				comment="#" if junction_type == "exon-intron" else None,
+				header=None,
+				dtype={0: str}
+			)
+
 			if junction_type == "exon-exon":
 				df = df.iloc[:, [0, 1, 2, 4, 10]]
 				df.columns = ["chr", "start", "end", "count", "block"]
 				df = df.reset_index()
-				df.loc[(df["chr"].str.isdecimal() == True) | (df["chr"].str.len() <= 2), "chr"] = "chr" + df["chr"]
+				df["chr"] = df["chr"].apply(lambda x: f"chr{x}" if x.isdecimal() or len(x) <= 2 else x)
 				df["blockSize1"] = df["block"].str.split(",", expand = True)[0].astype("int32")
 				df["start"] = df["start"].astype("int32") + df["blockSize1"]
 				df["blockSize2"] = df["block"].str.split(",", expand = True)[1].astype("int32")
 				df["end"] = df["end"].astype("int32") - df["blockSize2"] + 1
 				df["ID"] = df["chr"].astype(str) + ":" + df["start"].astype(str) + "-" + df["end"].astype(str)
 			else:
-				df = df.iloc[:, [1, 2, 3, 0, 6]]
-				# Remove the first row
-				df = df.iloc[1:]
+				df = df.iloc[1:, [1, 2, 3, 0, 6]]
 				df.columns = ["chr", "start", "end", "ID", "count"]
-				df.loc[(df["chr"].str.isdecimal() == True) | (df["chr"].str.len() <= 2), "chr"] = "chr" + df["chr"]
+
+			df["chr"] = df["chr"].apply(lambda x: f"chr{x}" if x.isdecimal() or len(x) <= 2 else x)
 			df["sample"] = sample_name
-			df = df[["ID", "sample", "count"]] if junction_type == "exon-exon" else df
-			result_df = pd.concat([result_df, df]) if result_df is not None else df
-		result_df["count"] = result_df["count"].astype("int32")
-		result_df = result_df.drop_duplicates()
-		return result_df
+			result_df.append(df[["ID", "sample", "count"]] if junction_type == "exon-exon" else df)
 
+		merged_df = pd.concat(result_df, ignore_index=True).drop_duplicates()
+		merged_df["count"] = merged_df["count"].astype(int)
+		return merged_df
+
+	# Separate files by junction type
+	exon_exon_files = [j[0] for j in junc_files if j[1] == "exon-exon"]
+	exon_intron_files = [j[0] for j in junc_files if j[1] == "exon-intron"]
+
+	# Process exon-exon junctions
 	exon_exon_df = process_junction_files(exon_exon_files, "exon-exon")
-	logger.debug("Check if there are duplicated junctions")
-	dup_df = exon_exon_df.groupby(["ID", "sample"], as_index=False).count()
-	dup_df = dup_df[dup_df["count"] > 1]
-	if dup_df.shape[0] > 0:
-		logger.error("Duplicated junctions:")
-		logger.error(dup_df)
-		logger.error("Please check the input files!")
-		raise ValueError("Duplicated junctions found.")
-	exon_exon_df = exon_exon_df.pivot(
-		index="ID",
-		columns="sample",
-		values="count"
-	).fillna(0).reset_index()
-	exon_exon_df["chr"] = exon_exon_df["ID"].str.split(":", expand=True)[0]
-	exon_exon_df["start"] = exon_exon_df["ID"].str.split(":", expand=True)[1].str.split("-", expand=True)[0].astype("int32")
-	exon_exon_df["end"] = exon_exon_df["ID"].str.split(":", expand=True)[1].str.split("-", expand=True)[1].astype("int32")
-	col = [i for i in exon_exon_df.columns if i not in ["chr", "start", "end", "ID"]]
-	for j in col:
-		exon_exon_df = exon_exon_df.astype({j: "int32"})
-	col = ["chr", "start", "end", "ID"] + col
-	exon_exon_df = exon_exon_df[col]
+	if exon_exon_df.duplicated(subset=["ID", "sample"]).any():
+		duplicates = exon_exon_df[exon_exon_df.duplicated(subset=["ID", "sample"], keep=False)]
+		logger.error(f"Duplicated junctions found: {duplicates}")
+		raise ValueError("Duplicated junctions detected. Please check the input files.")
 
+	exon_exon_df = exon_exon_df.pivot(index="ID", columns="sample", values="count").fillna(0).reset_index()
+	exon_exon_df["chr"], exon_exon_df["start"], exon_exon_df["end"] = zip(*exon_exon_df["ID"].str.extract(r'([^:]+):(\d+)-(\d+)').values)
+	exon_exon_df = exon_exon_df.astype({"start": int, "end": int})
+	exon_exon_df = exon_exon_df[["chr", "start", "end", "ID"] + [col for col in exon_exon_df.columns if col not in ["chr", "start", "end", "ID"]]]
+
+	# Process exon-intron junctions
 	exon_intron_df = process_junction_files(exon_intron_files, "exon-intron")
-	exon_intron_df = exon_intron_df.pivot(
-		index = ["chr", "start", "end", "ID"],
-		columns = "sample",
-		values = "count"
-	).fillna(0).reset_index()
-	col = [i for i in exon_intron_df.columns if i not in ["chr", "start", "end", "ID"]]
-	for j in col:
-		exon_intron_df = exon_intron_df.astype({j: "int32"})
+	exon_intron_df = exon_intron_df.pivot(index=["chr", "start", "end", "ID"], columns="sample", values="count").fillna(0).reset_index()
+	exon_intron_df = exon_intron_df.astype({col: int for col in exon_intron_df.columns if col not in ["chr", "start", "end", "ID"]})
 
-	final_df = pd.concat([exon_exon_df, exon_intron_df]).sort_values(["chr", "start"])
-	final_df.to_csv(output_file, sep="\t", index = False)
+	# Combine and save results
+	final_df = pd.concat([exon_exon_df, exon_intron_df], ignore_index=True).sort_values(["chr", "start"])
+	# Make sure values are all integers
+	final_df = final_df.astype({col: int for col in final_df.columns if col not in ["chr", "start", "end", "ID"]})
+	final_df.to_csv(output_file, sep="\t", index=False)
 	logger.info(f"Junction read counts merged into {output_file}")
 
 def main():
