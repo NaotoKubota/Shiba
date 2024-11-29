@@ -250,6 +250,7 @@ rule psi:
         --onlypsi {config[only_psi]} \
         --onlypsi-group {config[only_psi_group]} \
         --excel {config[excel]} \
+        -v \
         {input.junc} \
         events \
         {output.results} >& {log}
