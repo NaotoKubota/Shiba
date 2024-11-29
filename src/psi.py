@@ -157,9 +157,41 @@ def main():
         simple_psi_sample_df = pd.concat([result["output_mtx_sample"] for result in event_results.values()])
         simple_psi_sample_df.to_csv(f"{paths['output']}/PSI_matrix_sample.txt", sep="\t", index=False)
     else:
+        simple_psi_group_df = pd.concat([result["output_mtx_group"] for result in event_results.values()])
+        simple_psi_group_df.to_csv(f"{paths['output']}/PSI_matrix_group.txt", sep="\t", index=False)
+        simple_psi_sample_df = pd.concat([result["output_mtx_sample"] for result in event_results.values()])
+        simple_psi_sample_df.to_csv(f"{paths['output']}/PSI_matrix_sample.txt", sep="\t", index=False)
         for event, result in event_results.items():
             if result["diff"] is not None:
                 result["diff"].to_csv(f"{paths['output']}/PSI_{event}.txt", sep="\t", index=False)
+
+    # Save summary file
+    logger.info("Saving summary file...")
+    if paths["group"] and not params["onlypsi"] and not params["onlypsi_group"]:
+        # Define the event types
+        event_types = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]
+        # Collect event counts
+        summary_l = []
+        for event in event_types:
+            logger.debug(f"Counting events for {event}...")
+            event_counter = shibalib.EventCounter(event_results[event]["diff"], params["dPSI"])
+            event_counts = event_counter.count_all_events()
+            summary_l.extend([
+                [event, "Up", "annotated", event_counts["up_annotated_num"]],
+                [event, "Down", "annotated", event_counts["down_annotated_num"]],
+                [event, "Up", "unannotated", event_counts["up_unannotated_num"]],
+                [event, "Down", "unannotated", event_counts["down_unannotated_num"]],
+            ])
+        # Create and save the summary DataFrame
+        summary_df = pd.DataFrame(
+            summary_l,
+            columns=["AS", "Direction", "Label", "Number"]
+        )
+        summary_df.to_csv(
+            os.path.join(paths["output"], "summary.txt"),
+            sep="\t",
+            index=False,
+        )
 
     # Optionally save to Excel
     if params["excel"]:
