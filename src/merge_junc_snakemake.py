@@ -48,7 +48,7 @@ def merge_exonexon(filelist):
 		junc_df = junc_df[["ID", "sample", "count"]]
 		# Group by ID and sample
 		junc_df = junc_df.groupby(["ID", "sample"], as_index = False).sum()
-		result_df = pd.concat([result_df, junc_df], axis = 0) if result_df is not None else junc_df
+		result_df = pd.concat([result_df, junc_df], axis = 0) if not result_df.empty else junc_df
 
 	result_df["count"] = result_df["count"].astype("int32")
 	# Check if there are duplicated junctions
