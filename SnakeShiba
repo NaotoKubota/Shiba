@@ -216,7 +216,9 @@ rule merge_junc:
         python {params.base_dir}/src/merge_junc_snakemake.py \
         --exonexon {input.exonexon} \
         --exonintron {input.exonintron} \
-        --output {output} >& {log}
+        --output {output} \
+        -v \
+        >& {log}
         """
 
 rule psi:
