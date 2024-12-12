@@ -35,48 +35,17 @@ Step 7: plots.py
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
     return parser.parse_args()
 
-def check_file(file_path, description):
-    if not os.path.isfile(file_path):
-        logger.error(f"{description} does not exist: {file_path}")
-        sys.exit(1)
-
-def load_config(config_path):
-    """
-    Loads a YAML configuration file.
-
-    Parameters:
-    config_path (str): Path to the YAML configuration file.
-
-    Returns:
-    dict: The loaded configuration as a dictionary.
-    """
-    try:
-        with open(config_path, 'r') as file:
-            config = yaml.safe_load(file)
-        return config
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
-    except yaml.YAMLError as e:
-        raise ValueError(f"Error parsing YAML configuration file: {e}")
-
-def check_config(config, keys):
-    for key in keys:
-        if key not in config or not config[key]:
-            logger.error(f"{key} is not set in the config file.")
-            sys.exit(1)
-
-def execute_command(command):
-    logger.info(f"Executing: {' '.join(command)}")
-    result = subprocess.run(command, shell=False)
-    if result.returncode != 0:
-        logger.error(f"Command failed: {' '.join(command)}")
-        sys.exit(1)
-    logger.info(f"Completed.")
-
 def main():
 
     # Get arguments
     args = parse_args()
+
+    # Add parent directory to path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+    sys.path.append(parent_dir)
+    from lib import general
+
     # Set up logging
     logging.basicConfig(
         format = "[%(asctime)s] %(levelname)7s %(message)s",
@@ -85,27 +54,41 @@ def main():
 
     # Validate input and config
     logger.info("Running Shiba...")
-    config_path = args.config
+    logger.debug(f"Arguments: {args}")
+    # Get number of processors
     processors = str(args.process)
 
     # Load config
     logger.info("Loading configuration...")
-    config = load_config(config_path)
+    config_path = args.config
+    config = general.load_config(config_path)
 
     # Check essential config keys
-    check_config(config, ["workdir", "experiment_table", "gtf"])
+    missing_keys = general.check_config(config, ["workdir", "experiment_table", "gtf"])
+    if missing_keys:
+        logger.error(f"Missing required keys in configuration file: {', '.join(missing_keys)}")
+        sys.exit(1)
+    else:
+        logger.info(f"workdir: {config['workdir']}")
+        logger.info(f"experiment_table: {config['experiment_table']}")
+        logger.info(f"gtf: {config['gtf']}")
 
     # Prepare output directory
     output_dir = config["workdir"]
+    logger.debug("Making output directory...")
     os.makedirs(output_dir, exist_ok=True)
     log_file = os.path.join(output_dir, "Shiba.log")
+    logger.debug(f"Log file: {log_file}")
     logging.FileHandler(log_file)
 
     # Get parent directory of this script
+    logger.debug("Getting script directory...")
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
     # Get command line of this script
+    logger.debug("Getting command line...")
     command_line = " ".join(sys.argv)
+    logger.debug(f"Command line: {command_line}")
 
     # Steps
     experiment_table = config["experiment_table"]
@@ -151,7 +134,7 @@ def main():
             "command": [
                 "python", os.path.join(script_dir, "src", "psi.py"),
                 "-g", experiment_table,
-                "-p", processors,
+                "-p", "1",
                 "-r", config['reference_group'],
                 "-a", config['alternative_group'],
                 "-f", str(config['fdr']),
@@ -209,7 +192,10 @@ def main():
         logger.info(f"Executing {step['name']}...")
         command_to_run = step["command"] + ["-v"] if args.verbose else step["command"]
         logger.debug(command_to_run)
-        execute_command(command_to_run)
+        returncode = general.execute_command(command_to_run)
+        if returncode != 0:
+            logger.error(f"Error executing {step['name']}. Exiting...")
+            sys.exit(1)
 
     # Finish
     logger.info(f"Shiba finished! Results saved in {output_dir}")
