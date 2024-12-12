@@ -5,3 +5,4 @@ test/*.bash
 test/__pycache__
 test/logs
 test/*.out
+__pycache__
