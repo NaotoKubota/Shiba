@@ -19,9 +19,9 @@ def get_args():
 
 	parser.add_argument('-i', '--experiment', type = str, help = 'Experiment table', required = True)
 	parser.add_argument('-o', '--out', type = str, help = 'Output junction file', required = True)
+	parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
 
 	args = parser.parse_args()
-
 	return(args)
 
 

@@ -21,11 +21,10 @@ def get_args():
     parser.add_argument("-m", "--minimum-reads", type = int, help = "Minumum value of total reads for each junction for detecting differential events", default = 10)
     parser.add_argument("--onlypsi", help = "Just calculate PSI for each sample, not perform statistical tests", action = 'store_true')
     parser.add_argument("--excel", help = "Make result files in excel format", action = 'store_true')
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
-
     return(args)
-
 
 def main():
     ## Main
