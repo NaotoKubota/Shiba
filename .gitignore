@@ -1,3 +1,7 @@
 lib/__pycache__
 test/*.ipynb
 test/.ipynb_checkpoints
+test/*.bash
+test/__pycache__
+test/logs
+test/*.out
