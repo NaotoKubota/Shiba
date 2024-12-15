@@ -1,11 +1,14 @@
-# import warnings
-# warnings.simplefilter('ignore')
+import warnings
+warnings.simplefilter('ignore')
 import argparse
+import logging
 import sys
 import os
-import time
 import pandas as pd
 import scanpy as sc
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 def get_args():
 	'''
@@ -24,16 +27,13 @@ def get_args():
 	args = parser.parse_args()
 	return(args)
 
-
 def load_experiment_table(experiment_table):
 	'''
 	Load experiment table and returns a DataFrame object
 	'''
 
 	experiment_table_df = pd.read_csv(experiment_table, sep = "\t")
-
 	return(experiment_table_df)
-
 
 def make_sjpath_list(experiment_table_df):
 	'''
@@ -41,9 +41,7 @@ def make_sjpath_list(experiment_table_df):
 	'''
 
 	sjpath_list = experiment_table_df["SJ"].tolist()
-
 	return(sjpath_list)
-
 
 def load_sj(sj_file):
 	'''
@@ -59,16 +57,13 @@ def load_sj(sj_file):
 
 	return(adata)
 
-
 def make_grouppath_list(experiment_table_df):
 	'''
 	Generate a list of group file paths
 	'''
 
 	grouppath_list = experiment_table_df["barcode"].tolist()
-
 	return(grouppath_list)
-
 
 def load_group(grouppath):
 	'''
@@ -77,9 +72,7 @@ def load_group(grouppath):
 
 	group_df = pd.read_csv(grouppath, sep = "\t")
 	group_df = group_df.drop_duplicates()
-
 	return(group_df)
-
 
 def make_sample_group_dict(group_df):
 	'''
@@ -92,7 +85,6 @@ def make_sample_group_dict(group_df):
 		sample_group_dict[group_list[i]] = group_df[group_df["group"] == group_list[i]]["barcode"].tolist()
 
 	return(sample_group_dict)
-
 
 def grouping_read_count_each(adata, sample_group_dict, group, j):
 	'''
@@ -108,7 +100,6 @@ def grouping_read_count_each(adata, sample_group_dict, group, j):
 	count_df = count_df[count_df[j] != 0]
 
 	return(count_df)
-
 
 def formatting_output(count_df):
 	'''
@@ -128,98 +119,90 @@ def formatting_output(count_df):
 
 	return(output_df)
 
-
 def main():
 	'''
 	Main function
 	'''
-
 	args = get_args()
 
+	# Set up logging
+	logging.basicConfig(
+		format="[%(asctime)s] %(levelname)7s %(message)s",
+		level=logging.DEBUG if args.verbose else logging.INFO,
+	)
+	logger.info("Starting junction read count calculation")
+	logger.debug(args)
+
+	# Parse arguments
 	experiment_table = args.experiment
 	output_path = args.out
+
 	# Make directory
+	logger.info("Making output directory ...")
 	os.makedirs(os.path.dirname(output_path), exist_ok = True)
 
 	# Load experiment table
-	print("Loading experiment table ...", file = sys.stderr)
+	logger.info("Loading experiment table ...")
 	experiment_table_df = load_experiment_table(experiment_table)
 
 	# Make a list of SJ file paths
+	logger.info("Making SJ file paths ...")
 	sjpath_list = make_sjpath_list(experiment_table_df)
 
 	# Load SJ files
-	print("Loading SJ files ...", file = sys.stderr)
+	logger.info("Loading SJ files ...")
 	adata_list = []
 	for x in sjpath_list:
-
+		logger.debug(f"Loading {x}...")
 		adata = load_sj(x)
 		adata_list.append(adata)
 
 	# Make a list of group file paths
+	logger.info("Making group file paths ...")
 	grouppath_list = make_grouppath_list(experiment_table_df)
 
 	# Load group files
-	print("Loading group file ...", file = sys.stderr)
+	logger.info("Loading group files ...")
 	group_df_list = []
 	group_list = []
 	sample_group_dict_list = []
 	for x in grouppath_list:
-
+		logger.debug(f"Loading {x}...")
 		group_df = load_group(x)
 		group_df_list.append(group_df)
-
 		sample_group_dict = make_sample_group_dict(group_df)
 		sample_group_dict_list.append(sample_group_dict)
-
 		group_list += list(sample_group_dict.keys())
-
 	group_list = sorted(list(set(group_list)))
 
-	print("Grouping junction read counts ...", file = sys.stderr)
+	logger.info("Grouping junction read counts ...")
 	sj_grouped_df = pd.DataFrame()
 	for group in group_list:
-
-		print(group, file = sys.stderr)
-
+		logger.debug(f"Group: {group}")
 		sj_tmp_df = pd.DataFrame()
-
 		for j in range(len(adata_list)):
-
+			logger.debug(f"Sample: {j}")
 			tmp_df = grouping_read_count_each(adata_list[j], sample_group_dict_list[j], group, j)
-
-			if sj_tmp_df.empty:
-
-				sj_tmp_df = tmp_df
-
-			else:
-
-				sj_tmp_df = pd.merge(sj_tmp_df, tmp_df, on = "SJ", how = "outer")
-				sj_tmp_df = sj_tmp_df.fillna(0)
+			sj_tmp_df = pd.merge(sj_tmp_df, tmp_df, on="SJ", how="outer").fillna(0) if not sj_tmp_df.empty else tmp_df
 
 		sj_tmp_df = sj_tmp_df.set_index("SJ")
 		# Summarize junction read counts
 		sj_tmp_df = pd.DataFrame({group: sj_tmp_df.sum(axis = 1)})
-
 		if sj_grouped_df.empty:
-
 			sj_grouped_df = sj_tmp_df
-
 		else:
-
 			sj_grouped_df = pd.merge(sj_grouped_df, sj_tmp_df, on = "SJ", how = "outer")
 			sj_grouped_df = sj_grouped_df.fillna(0)
 
 	# Formatting output junction file
-	print("Formatting output junction file ...", file = sys.stderr)
+	logger.info("Formatting output junction file ...")
 	output_df = formatting_output(sj_grouped_df)
 
 	# Write output junction file
-	print("Writing output junction file ...", file = sys.stderr)
+	logger.info("Writing output junction file ...")
 	output_df.to_csv(output_path, sep = "\t", index = False)
 
-	print("Done!", file = sys.stderr)
-
+	logger.info("All processes completed.")
 
 if __name__ == '__main__':
 
