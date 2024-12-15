@@ -153,9 +153,15 @@ def main():
     if params["onlypsi_group"]:
         simple_psi_group_df = pd.concat([result["output_mtx_group"] for result in event_results.values()])
         simple_psi_group_df.to_csv(f"{paths['output']}/PSI_matrix_group.txt", sep="\t", index=False)
+        for event, result in event_results.items():
+            if result["nodiff_group"] is not None:
+                result["nodiff_group"].to_csv(f"{paths['output']}/PSI_{event}.txt", sep="\t", index=False)
     elif params["onlypsi"]:
         simple_psi_sample_df = pd.concat([result["output_mtx_sample"] for result in event_results.values()])
         simple_psi_sample_df.to_csv(f"{paths['output']}/PSI_matrix_sample.txt", sep="\t", index=False)
+        for event, result in event_results.items():
+            if result["nodiff_sample"] is not None:
+                result["nodiff_sample"].to_csv(f"{paths['output']}/PSI_{event}.txt", sep="\t", index=False)
     else:
         simple_psi_group_df = pd.concat([result["output_mtx_group"] for result in event_results.values()])
         simple_psi_group_df.to_csv(f"{paths['output']}/PSI_matrix_group.txt", sep="\t", index=False)
@@ -196,7 +202,17 @@ def main():
     # Optionally save to Excel
     if params["excel"]:
         logger.info("Exporting results to Excel...")
-        shibalib.save_excel(paths["output"], *(result["diff"] for result in event_results.values()))
+        excel_data = []
+        if params["onlypsi_group"]:
+            excel_data = [result["nodiff_group"] for result in event_results.values() if result["nodiff_group"] is not None]
+        elif params["onlypsi"]:
+            excel_data = [result["nodiff_sample"] for result in event_results.values() if result["nodiff_sample"] is not None]
+        else:
+            excel_data = [result["diff"] for result in event_results.values() if result["diff"] is not None]
+        if excel_data:
+            shibalib.save_excel(paths["output"], *excel_data)
+        else:
+            logger.warning("No data to export to Excel")
 
     logger.info("All processes completed.")
 

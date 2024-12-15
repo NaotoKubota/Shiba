@@ -140,6 +140,11 @@ def main():
                 "-f", str(config['fdr']),
                 "-d", str(config['delta_psi']),
                 "-m", str(config['minimum_reads']),
+                "-i" if config['individual_psi'] else "",
+                "-t" if config['ttest'] else "",
+                "--excel" if config['excel'] else "",
+                "--onlypsi" if config['only_psi'] else "",
+                "--onlypsi-group" if config['only_psi_group'] else "",
                 os.path.join(output_dir, "junctions", "junctions.bed"),
                 os.path.join(output_dir, "events"),
                 os.path.join(output_dir, "results", "splicing")
@@ -152,8 +157,10 @@ def main():
                 "-i", experiment_table,
                 "-g", gtf,
                 "-o", os.path.join(output_dir, "results", "expression"),
-                "-r", config['reference_group'],
-                "-a", config['alternative_group'],
+                "" if config['only_psi'] or config['only_psi_group'] else "-r",
+                "" if not config['only_psi'] or config['only_psi_group'] else config['reference_group'],
+                "" if not config['only_psi'] or config['only_psi_group'] else "-a",
+                "" if not config['only_psi'] or config['only_psi_group'] else config['alternative_group'],
                 "-p", processors
             ]
         },
@@ -187,10 +194,16 @@ def main():
         logger.info(f"Starting from step {start_step}...")
         steps = steps[start_step-1:]
 
+    # Skip plots.py step when only_psi or only_psi_group is True
+    if config['only_psi'] or config['only_psi_group']:
+        steps = steps[:-1]
+
     # Execute steps
     for step in steps:
         logger.info(f"Executing {step['name']}...")
         command_to_run = step["command"] + ["-v"] if args.verbose else step["command"]
+        # Delete empty strings
+        command_to_run = [x for x in command_to_run if x]
         logger.debug(command_to_run)
         returncode = general.execute_command(command_to_run)
         if returncode != 0:
