@@ -205,7 +205,17 @@ def main():
     # Optionally save to Excel
     if params["excel"]:
         logger.info("Exporting results to Excel...")
-        shibalib.save_excel(paths["output"], *(result["diff"] for result in event_results.values()))
+        excel_data = []
+        if params["onlypsi_group"]:
+            excel_data = [result["nodiff_group"] for result in event_results.values() if result["nodiff_group"] is not None]
+        elif params["onlypsi"]:
+            excel_data = [result["nodiff_sample"] for result in event_results.values() if result["nodiff_sample"] is not None]
+        else:
+            excel_data = [result["diff"] for result in event_results.values() if result["diff"] is not None]
+        if excel_data:
+            shibalib.save_excel(paths["output"], *excel_data)
+        else:
+            logger.warning("No data to export to Excel")
 
     logger.info("All processes completed.")
 
