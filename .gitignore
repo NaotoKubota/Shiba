@@ -7,4 +7,5 @@ test/logs
 test/*.out
 test/*.yaml
 test/*.tsv
+test/*.snakemake
 __pycache__
