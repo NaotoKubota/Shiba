@@ -249,8 +249,8 @@ rule psi:
         -a {config[alternative_group]} \
         -i {config[individual_psi]} \
         -t {config[ttest]} \
-        --onlypsi {config[only_psi]} \
-        --onlypsi-group {config[only_psi_group]} \
+        --onlypsi False \
+        --onlypsi-group False \
         --excel {config[excel]} \
         -v \
         {input.junc} \
@@ -302,6 +302,7 @@ rule expression_tpm:
         python {params.base_dir}/src/tpm_snakemake.py \
         --countfiles {input.counts} \
         --output results/expression/ \
+        -v \
         &> {log}
         """
 
