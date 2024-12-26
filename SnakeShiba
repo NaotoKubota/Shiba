@@ -131,7 +131,9 @@ rule gtf2event:
         -i {input.assembled_gtf} \
         -r {input.gtf} \
         -o {output.events} \
-        -p {threads} >& {log}
+        -p {threads} \
+        -v \
+        >& {log}
         """
 
 rule bam2junc:
@@ -350,6 +352,7 @@ rule pca:
         --input-psi {input.PSI_matrix_sample} \
         -g 3000 \
         -o results/pca \
+        -v \
         &> {log}
         """
 
@@ -375,5 +378,7 @@ rule plots:
         -i results \
         -e {config[experiment_table]} \
         -s "{params.command}" \
-        -o plots >& {log}
+        -o plots \
+        -v \
+        >& {log}
         """
