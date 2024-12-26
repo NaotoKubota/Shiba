@@ -340,7 +340,7 @@ rule pca:
     benchmark:
         "benchmark/pca/pca.txt"
     log:
-        "log/pca/pca.log"
+        "log/pca.log"
     params:
         base_dir = base_dir
     shell:
