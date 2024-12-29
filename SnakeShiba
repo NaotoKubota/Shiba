@@ -198,6 +198,7 @@ rule bam2junc_RI:
         -r {input.RI} \
         -o {output.junc} \
         -t {threads} \
+        -v \
         &> {log}
         """
 
@@ -328,6 +329,7 @@ rule deseq2:
         --reference {config[reference_group]} \
         --alternative {config[alternative_group]} \
         --output {output.deseq2} \
+        -v \
         &> {log}
         """
 
