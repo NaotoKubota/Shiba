@@ -43,18 +43,6 @@ def run_command(command, log_file=None):
 def prepare_output_dir(output_dir):
     os.makedirs(f"{output_dir}/logs", exist_ok=True)
 
-def is_paired_end(bam_file):
-	"""
-	Determine if a BAM file is paired-end.
-	Returns True if paired-end, False otherwise.
-	"""
-	logger.debug(f"Checking if BAM file is paired-end: {bam_file}")
-	with pysam.AlignmentFile(bam_file, "rb") as bam:
-		for read in bam:
-			if read.is_paired:
-				return True
-		return False
-
 def process_samples(experiment_file, reference_gtf, output_dir, processors):
 	count_all_df = pd.DataFrame()
 	with open(experiment_file, "r") as experiment:
@@ -73,7 +61,7 @@ def process_samples(experiment_file, reference_gtf, output_dir, processors):
 				run_command(f"samtools index {bam_file}")
 
 			# Check if BAM is paired-end
-			paired_flag = is_paired_end(bam_file)
+			paired_flag = expression.is_paired_end(bam_file)
 			paired_option = "-p -B" if paired_flag else ""
 
 			# Run featureCounts

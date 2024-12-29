@@ -283,6 +283,7 @@ rule expression_featureCounts:
         -g {config[gtf]} \
         -o {output.counts} \
         -t {threads} \
+        -v \
         &> {log}
         """
 
