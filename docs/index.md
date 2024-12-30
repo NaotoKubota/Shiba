@@ -16,9 +16,9 @@ See [CHANGELOG.md](https://github.com/NaotoKubota/Shiba/blob/main/CHANGELOG.md) 
     - [Shiba/SnakeShiba](output/shiba.md)
     - [scShiba/SnakeScShiba](output/scshiba.md)
 - Usage
-    - [Shiba](usage/shiba.md)
+    - [shiba.py](usage/shiba.md)
     - [SnakeShiba](usage/snakeshiba.md)
-    - [scShiba](usage/scshiba.md)
+    - [scshiba.py](usage/scshiba.md)
     - [SnakeScShiba](usage/snakescshiba.md)
 
 ## Citation

@@ -12,7 +12,7 @@ docker pull naotokubota/shiba:latest
 docker run -it --rm naotokubota/shiba:latest bash
 
 # Run Shiba, for example, to see the help message
-docker run -it --rm naotokubota/shiba:latest Shiba -h
+docker run -it --rm naotokubota/shiba:latest python /opt_shiba/Shiba/shiba.py -h
 ```
 
 ## Singularity
@@ -25,7 +25,7 @@ singularity pull docker://naotokubota/shiba:latest
 singularity shell shiba_latest.sif
 
 # Run Shiba, for example, to see the help message
-singularity exec shiba_latest.sif Shiba -h
+singularity exec shiba_latest.sif python /opt_shiba/Shiba/shiba.py -h
 ```
 
 ## Snakemake

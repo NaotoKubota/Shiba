@@ -1,48 +1,75 @@
 # Shiba usage
 
 ``` bash
-Usage: Shiba -i experiment.tsv -c config.txt
+usage: shiba.py [-h] [-p PROCESS] [-s START_STEP] [-v] config.yaml
 
-    -h  Display help
-    -v  Show version
-    -i  Experiment table
-    -c  Config file
+Shiba v0.4.1 - Pipeline for identification of differential RNA splicing
+
+Step 1: bam2gtf.py
+    - Assembles transcript structures based on mapped reads using StringTie2.
+Step 2: gtf2event.py
+    - Converts GTF files to event format.
+Step 3: bam2junc.py
+    - Extracts junction reads from BAM files.
+Step 4: psi.py
+    - Calculates PSI values and perform differential analysis
+Step 5: expression.py
+    - Analyzes gene expression.
+Step 6: pca.py
+    - Performs PCA.
+Step 7: plots.py
+    - Generates plots from results.
+
+positional arguments:
+  config.yaml           Config file in yaml format
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PROCESS, --process PROCESS
+                        Number of processors to use (default: 1)
+  -s START_STEP, --start-step START_STEP
+                        Start the pipeline from the specified step (default: 0, run all steps)
+  -v, --verbose         Verbose mode
 ```
 
-Check the [Manual](../manual/diff_splicing_bulk.md/#1-prepare-inputs) to learn how to prepare the `Expermiment table` and `Config file`.
+Check the [Manual](../manual/diff_splicing_bulk.md/#1-prepare-inputs) to learn how to prepare the `config.yaml`.
 
 The `Shiba` command will run the following steps sequentially:
 
-1. `bam2gtf.sh`
+1. `bam2gtf.py`
 2. `gtf2event.py`
-3. `bam2junc.sh`
+3. `bam2junc.py`
 4. `psi.py`
-5. `expression.sh`
+5. `expression.py`
 6. `pca.py`
 7. `plots.py`
 
 ---
 
-## Step1: `bam2gtf.sh`
-
-Perform transcript assembly based on mapped reads.
+## Step1: `bam2gtf.py`
 
 ``` bash
-Usage: bam2gtf.sh -i experiment.tsv -r reference_annotation.gtf -o assembled_annotation.gtf -p [VALUE]
+usage: bam2gtf.py [-h] -i INPUT -r REFERENCE -o OUTPUT [-p PROCESSORS] [-v]
 
-    -h  Display help
-    -i  Experiment table
-    -r  Reference GTF file
-    -o  Assembled GTF file
-    -p  Number of processors to use (default: 1)
+Pipeline for transcript assembly using StringTie2
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Experiment table
+  -r REFERENCE, --reference REFERENCE
+                        Reference GTF file
+  -o OUTPUT, --output OUTPUT
+                        Assembled GTF file
+  -p PROCESSORS, --processors PROCESSORS
+                        Number of processors to use (default: 1)
+  -v, --verbose         Verbose output
 ```
 
 ## Step2: `gtf2event.py`
 
-Make a file of alternative splicing events.
-
 ``` bash
-usage: gtf2event.py [-h] -i GTF [-r REFERENCE_GTF] -o OUTPUT [-p NUM_PROCESS]
+usage: gtf2event.py [-h] -i GTF [-r REFERENCE_GTF] -o OUTPUT [-p NUM_PROCESS] [-v]
 
 Extract alternative splicing events from GTF file
 
@@ -55,6 +82,7 @@ optional arguments:
                         Output directory
   -p NUM_PROCESS, --num-process NUM_PROCESS
                         Number of processors to use
+  -v, --verbose         Verbose output
 ```
 
 Example of `EVENT_SE.txt`:
@@ -73,31 +101,38 @@ SE_9  SE@chr10@100610596-100610715@100609254-100612429  chr10:100610596-10061071
 ...
 ```
 
-## Step3: `bam2junc.sh`
-
-Make a table of junction read counts.
+## Step3: `bam2junc.py`
 
 ``` bash
-Usage: bam2junc.sh -i experiment.tsv -r RI_EVENT.txt -o junctions.bed -p [VALUE] -a [VALUE] -m [VALUE] -M [VALUE] -s [VALUE]
+usage: bam2junc.py [-h] -i INPUT -r RI_EVENT -o OUTPUT [-p PROCESSORS] [-a ANCHOR] [-m MIN_INTRON] [-M MAX_INTRON] [-s STRAND] [-v]
 
-    -h  Display help
-    -i  Experiment table
-    -r  Intron retention event
-    -o  Junction read counts
-    -p  Number of processors to use (default: 1)
-    -a  Minimum anchor length (default: 8)
-    -m  Minimum intron size (default: 70)
-    -M  Maximum intron size (default: 500000)
-    -s  Strand specificity of RNA library preparation; XS: unstranded, RF: first-strand, FR: second-strand (default: XS)
+Pipeline for processing junction read counts.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Experiment table
+  -r RI_EVENT, --ri_event RI_EVENT
+                        Intron retention event file
+  -o OUTPUT, --output OUTPUT
+                        Output junction read counts file
+  -p PROCESSORS, --processors PROCESSORS
+                        Number of processors to use (default: 1)
+  -a ANCHOR, --anchor ANCHOR
+                        Minimum anchor length (default: 8)
+  -m MIN_INTRON, --min_intron MIN_INTRON
+                        Minimum intron size (default: 70)
+  -M MAX_INTRON, --max_intron MAX_INTRON
+                        Maximum intron size (default: 500000)
+  -s STRAND, --strand STRAND
+                        Strand specificity (default: XS)
+  -v, --verbose         Verbose output
 ```
 
 ## Step4: `psi.py`
 
-Calculate PSI and detect differential events.
-
 ``` bash
-usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel]
-              junctions event output
+usage: psi.py [-h] [-p NUM_PROCESS] [-g GROUP] [-f FDR] [-d PSI] [-r REFERENCE] [-a ALTERNATIVE] [-m MINIMUM_READS] [-i] [-t] [--onlypsi] [--onlypsi-group] [--excel] [-v] junctions event output
 
 PSI calculation for alternative splicing events
 
@@ -106,7 +141,7 @@ positional arguments:
   event                 Directory that contains text files of alternative splicing events generated by gtf2event.py
   output                Directory for output files
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -p NUM_PROCESS, --num-process NUM_PROCESS
                         Number of processors to use (default: 1)
@@ -125,34 +160,41 @@ options:
   --onlypsi             Just calculate PSI for each sample, not perform statistical tests (default: False)
   --onlypsi-group       Just calculate PSI for each group, not perform statistical tests (Overrides --onlypsi when used together) (default: False)
   --excel               Make result files in excel format (default: False)
+  -v, --verbose         Verbose output (default: False)
 ```
 
-## Step5: `expression.sh`
-
-Gene expression analysis.
+## Step5: `expression.py`
 
 ``` bash
-Usage: expression.sh -i experiment.txt -g reference_annotation.gtf -o output_dir -r [VALUE] -a [VALUE] -p [VALUE]
+usage: expression.py [-h] -i INPUT -g REFERENCE -o OUTPUT [-r REFGROUP] [-a ALTGROUP] [-p PROCESSORS] [-v]
 
-    -h  Display help
-    -i  Experiment table
-    -g  Reference GTF file
-    -o  Output directory
-    -r  Reference group for differential expression analysis (default: NA)
-    -a  Alternative group for differential expression analysis (default: NA)
-    -p  Number of processors to use (default: 1)
+RNA expression analysis using featureCounts and DESeq2.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Experiment table
+  -g REFERENCE, --reference REFERENCE
+                        Reference GTF file
+  -o OUTPUT, --output OUTPUT
+                        Output directory
+  -r REFGROUP, --refgroup REFGROUP
+                        Reference group for differential expression analysis
+  -a ALTGROUP, --altgroup ALTGROUP
+                        Alternative group for differential expression analysis
+  -p PROCESSORS, --processors PROCESSORS
+                        Number of processors to use (default: 1)
+  -v, --verbose         Increase output verbosity
 ```
 
 ## Step6: `pca.py`
 
-Principal component analysis.
-
 ``` bash
-usage: pca.py [-h] [--input-tpm INPUT_TPM] [--input-psi INPUT_PSI] [-g GENES] [-o OUTPUT]
+usage: pca.py [-h] [--input-tpm INPUT_TPM] [--input-psi INPUT_PSI] [-g GENES] [-o OUTPUT] [-v]
 
-pca.py: Principal Component Analysis for matrix of gene expression and splicing
+Principal Component Analysis for matrix of gene expression and splicing
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   --input-tpm INPUT_TPM
                         Input TPM file (default: None)
@@ -162,23 +204,25 @@ options:
                         Number of highly-variable genes or splicing events to calculate PCs (default: 3000)
   -o OUTPUT, --output OUTPUT
                         Output directory (default: None)
+  -v, --verbose         Verbose output (default: False)
 ```
 
 ## Step7: `plots.py`
 
-Make plots.
-
 ``` bash
-usage: plots.py [-h] [-i INPUT] [-e EXPERIMENT_TABLE] [-o OUTPUT]
+usage: plots.py [-h] [-i INPUT] [-e EXPERIMENT_TABLE] [-s SHIBA_COMMAND] [-o OUTPUT] [-v]
 
 Make plots for alternative splicing events
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
                         Directory that contains result files (default: None)
   -e EXPERIMENT_TABLE, --experiment-table EXPERIMENT_TABLE
                         Experiment table file (default: None)
+  -s SHIBA_COMMAND, --shiba-command SHIBA_COMMAND
+                        Shiba command (default: None)
   -o OUTPUT, --output OUTPUT
                         Directory for output files (default: None)
+  -v, --verbose         Verbose output (default: False)
 ```
