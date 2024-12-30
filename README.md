@@ -35,7 +35,7 @@ docker pull naotokubota/shiba
 ***Shiba***
 
 ```bash
-Shiba -i experiment.tsv -c config.txt
+python shiba.py -p 32 config.yaml
 ```
 
 ***SnakeShiba***, Snakemake-based workflow of Shiba
@@ -47,7 +47,7 @@ snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity
 ***scShiba***, a single-cell RNA-seq version of Shiba
 
 ```bash
-scShiba -i experiment.tsv -c config.txt
+python scshiba.py -p 32 config.yaml
 ```
 
 ***SnakeScShiba***, Snakemake-based workflow of scShiba
@@ -56,7 +56,7 @@ scShiba -i experiment.tsv -c config.txt
 snakemake -s SnakeScShiba --configfile config.yaml --cores 32 --use-singularity
 ```
 
-See [the manual document](https://github.com/NaotoKubota/Shiba/blob/main/doc/MANUAL.md) for details.
+See [the manual document](https://naotokubota.github.io/Shiba/) for details.
 
 ## Citation
 
