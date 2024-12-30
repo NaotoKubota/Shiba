@@ -1,7 +1,11 @@
 import argparse
 import os
+import sys
 import logging
-import subprocess
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+sys.path.append(parent_dir)
+from lib import general
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -24,17 +28,6 @@ def validate_output_file(output_file):
 	if os.path.exists(output_file) and not os.access(output_file, os.W_OK):
 		logger.error(f"Output file is not writable: {output_file}")
 		raise PermissionError(f"{output_file} is not writable.")
-
-def run_command(command):
-	logger.info(f"Executing: {command}")
-	result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	if result.returncode != 0:
-		logger.error(f"Command failed: {command}")
-		logger.error(result.stderr)
-		raise RuntimeError(f"Command failed with exit code {result.returncode}")
-
-def create_directory(directory):
-	os.makedirs(directory, exist_ok=True)
 
 def main():
 
@@ -59,10 +52,10 @@ def main():
 
 	# Prepare output directory
 	output_dir = os.path.dirname(assembled_gtf)
-	create_directory(output_dir)
+	os.makedirs(output_dir, exist_ok=True)
 
-	gtf_list_path = os.path.join(output_dir, "gtf_list.txt")
-	with open(experiment_file, "r") as experiment, open(gtf_list_path, "w") as gtf_list:
+	gtf_list = []
+	with open(experiment_file, "r") as experiment:
 		for line in experiment:
 			line = line.strip()
 			if not line or line.startswith("sample"):
@@ -75,33 +68,53 @@ def main():
 			logger.info(f"Processing sample: {sample}")
 			logger.debug(f"BAM file: {bam_file}")
 
-			# Check or create BAM index
+			# Check if BAM index exists
 			if not os.path.isfile(bam_index):
-				logger.info(f"Creating BAM index for {bam_file}")
-				run_command(f"samtools index {bam_file}")
+				logger.error(f"BAM index file not found for {bam_file}")
+				logger.error(f"Please create an index file using 'samtools index' for all BAM files.")
+				sys.exit(1)
 			else:
 				logger.debug(f"Found BAM index for {bam_file}")
 
 			# Run StringTie2 for assembly
-			sample_gtf = os.path.join(sample_dir, f"{sample}.assembled.gtf")
-			stringtie_command = (
-				f"stringtie -p {num_processors} -G {reference_gtf} -o {sample_gtf} {bam_file}"
-			)
-			run_command(stringtie_command)
+			sample_gtf = os.path.join(os.path.dirname(assembled_gtf), f"{sample}.assembled.gtf")
+			stringtie_command = [
+				"stringtie",
+				"-p", str(num_processors),
+				"-G", reference_gtf,
+				"-o", sample_gtf,
+				bam_file
+			]
+			logger.debug(f"StringTie2 command: {stringtie_command}")
+			return_code = general.execute_command(stringtie_command)
+			if return_code != 0:
+				logger.error(f"StringTie2 failed for sample {sample}")
+				sys.exit(1)
 
 			# Add to GTF list
-			gtf_list.write(f"{sample_gtf}\n")
+			gtf_list.append(sample_gtf)
 
 	# Merge GTF files
 	logger.info("Merging GTF files...")
-	with open(gtf_list_path, "r") as gtf_list_file:
-		gtf_files = " ".join(gtf_list_file.read().splitlines())
+	merge_command = [
+		"stringtie",
+		"--merge",
+		"-p", str(num_processors),
+		"-G", reference_gtf,
+		"-o", assembled_gtf
+	] + gtf_list
+	logger.debug(f"StringTie2 merge command: {merge_command}")
+	return_code = general.execute_command(merge_command)
+	if return_code != 0:
+		logger.error("StringTie2 merge failed")
+		sys.exit(1)
 
-	merge_command = f"stringtie --merge -p {num_processors} -G {reference_gtf} -o {assembled_gtf} {gtf_files}"
-	run_command(merge_command)
+	# Cleanup assembled GTF files
+	logger.info("Cleaning up intermediate GTF files...")
+	for gtf_file in gtf_list:
+		os.remove(gtf_file)
 
-	# Cleanup
-	os.remove(gtf_list_path)
+	# Done
 	logger.info("Transcript assembly completed successfully!")
 
 if __name__ == "__main__":

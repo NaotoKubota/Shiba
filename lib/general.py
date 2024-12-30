@@ -28,6 +28,10 @@ def check_config(config, keys):
     missing_keys = [key for key in keys if key not in config or not config[key]]
     return missing_keys
 
-def execute_command(command):
-    result = subprocess.run(command, shell=False)
+def execute_command(command, log_file=None):
+    if log_file:
+        with open(log_file, "a") as log:
+            result = subprocess.run(command, shell=False, stdout=log, stderr=log)
+    else:
+        result = subprocess.run(command, shell=False)
     return result.returncode

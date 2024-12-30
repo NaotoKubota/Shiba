@@ -8,7 +8,7 @@ import pandas as pd
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.append(parent_dir)
-from lib import expression
+from lib import expression, general
 from styleframe import StyleFrame, Styler, utils
 
 # Configure logging
@@ -27,14 +27,6 @@ def parse_args():
 	parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
 	return parser.parse_args()
 
-def run_command(command, log_file=None):
-    logger.info(f"Executing: {command}")
-    with open(log_file, "a") if log_file else None as log:
-        result = subprocess.run(command, shell=True, text=True, stdout=log, stderr=log)
-    if result.returncode != 0:
-        logger.error(f"Command failed: {command}")
-        raise RuntimeError(f"Command failed with exit code {result.returncode}")
-
 def prepare_output_dir(output_dir):
     os.makedirs(f"{output_dir}/logs", exist_ok=True)
 
@@ -52,20 +44,28 @@ def process_samples(experiment_file, reference_gtf, output_dir, processors):
 
 			# Ensure BAM index exists
 			if not os.path.isfile(bam_index):
-				logger.info(f"Indexing BAM file for sample {sample}")
-				run_command(f"samtools index {bam_file}")
+				logger.error(f"BAM index file not found for sample : {sample}")
+				logger.error("Please create an index file using 'samtools index' for all BAM files.")
+				sys.exit(1)
+			else:
+				logger.debug(f"Found BAM index for {bam_file}")
 
 			# Check if BAM is paired-end
 			paired_flag = expression.is_paired_end(bam_file)
-			paired_option = "-p -B" if paired_flag else ""
+			paired_option = ["-p", "-B"] if paired_flag else [""]
 
 			# Run featureCounts
 			counts_file = f"{output_dir}/{sample}_counts.txt"
-			featurecounts_command = (
-				f"featureCounts -a {reference_gtf} -o {counts_file} -T {processors} "
-				f"-t exon -g gene_id {paired_option} {bam_file}"
-			)
-			run_command(featurecounts_command, f"{output_dir}/logs/featureCounts.log")
+			featurecounts_command = [
+				"featureCounts", "-a", reference_gtf, "-o", counts_file, "-T", str(processors),
+				"-t", "exon", "-g", "gene_id"
+			] + paired_option + [bam_file]
+			# Delete empty strings
+			featurecounts_command = list(filter(None, featurecounts_command))
+			return_code = general.execute_command(featurecounts_command, f"{output_dir}/logs/featureCounts.log")
+			if return_code != 0:
+				logger.error(f"FeatureCounts failed for sample {sample}")
+				sys.exit(1)
 
 			# Simplify counts file
 			logger.info(f"Simplifying counts file for sample {sample}")
@@ -79,12 +79,15 @@ def process_samples(experiment_file, reference_gtf, output_dir, processors):
 	return count_all_df
 
 def run_deseq2(src_path, experiment_file, counts_file, refgroup, altgroup, output_dir):
-    if refgroup != "NA" and altgroup != "NA":
-        logger.info("Running differential expression analysis using DESeq2...")
-        deseq2_command = (
-            f"Rscript {src_path}/deseq2.R {experiment_file} {counts_file} {refgroup} {altgroup} {output_dir}/DEG.txt"
-        )
-        run_command(deseq2_command, f"{output_dir}/logs/DESeq2.log")
+	if refgroup != "NA" and altgroup != "NA":
+		logger.info("Running differential expression analysis using DESeq2...")
+		deseq2_command = [
+			"Rscript", f"{src_path}/deseq2.R", experiment_file, counts_file, refgroup, altgroup, f"{output_dir}/DEG.txt"
+		]
+		return_code = general.execute_command(deseq2_command, f"{output_dir}/logs/DESeq2.log")
+		if return_code != 0:
+			logger.error("DESeq2 failed")
+			sys.exit(1)
 
 def main():
 
