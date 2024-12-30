@@ -23,11 +23,6 @@ def get_args():
 	parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 	return parser.parse_args()
 
-def check_file(file_path, description):
-	if not os.path.isfile(file_path):
-		logger.error(f"{description} does not exist: {file_path}")
-		raise FileNotFoundError(f"{file_path} not found.")
-
 def run_command(command, log_file=None):
 	logger.info(f"Executing: {command}")
 	with open(log_file, "a") if log_file else None as log:
@@ -194,9 +189,6 @@ def main():
 	)
 	logger.info("Processing junction read counts...")
 	logger.debug(args)
-
-	check_file(args.input, "Experiment table")
-	check_file(args.ri_event, "Intron retention event file")
 
 	output_dir, logs_dir = prepare_output_dir(args.output)
 	saf_file = create_saf_file(args.ri_event, output_dir)

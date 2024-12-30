@@ -17,11 +17,6 @@ def parse_args():
 	parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 	return parser.parse_args()
 
-def check_file(file_path, description):
-	if not os.path.isfile(file_path):
-		logger.error(f"{description} does not exist: {file_path}")
-		raise FileNotFoundError(f"{file_path} not found.")
-
 def validate_output_file(output_file):
 	if os.path.isdir(output_file):
 		logger.error(f"Output path is a directory, not a file: {output_file}")
@@ -58,10 +53,6 @@ def main():
 
 	logger.info("Starting transcript assembly...")
 	logger.debug(args)
-
-	# Validate input files
-	check_file(experiment_file, "Experiment table")
-	check_file(reference_gtf, "Reference GTF")
 
 	# Validate output file
 	validate_output_file(assembled_gtf)

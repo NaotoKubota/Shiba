@@ -27,11 +27,6 @@ def parse_args():
 	parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
 	return parser.parse_args()
 
-def check_file(file_path, description):
-    if not os.path.isfile(file_path):
-        logger.error(f"{description} does not exist: {file_path}")
-        raise FileNotFoundError(f"{file_path} not found.")
-
 def run_command(command, log_file=None):
     logger.info(f"Executing: {command}")
     with open(log_file, "a") if log_file else None as log:
@@ -102,10 +97,6 @@ def main():
 	)
 	logger.info("Starting RNA expression analysis...")
 	logger.debug(args)
-
-	# Validate input files
-	check_file(args.input, "Experiment table")
-	check_file(args.reference, "Reference GTF file")
 
 	# Prepare output directory
 	prepare_output_dir(args.output)
