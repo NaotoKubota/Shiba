@@ -5,8 +5,6 @@ import sys
 import os
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import html
 import logging
 
 # Configure logging
@@ -813,6 +811,10 @@ def main():
 		level = logging.DEBUG if args.verbose else logging.INFO
 	)
 	logger.info("Starting making plots....")
+
+	# Import libraries
+	import plotly.express as px
+	import html
 
 	# Set variables
 	input_dir = args.input

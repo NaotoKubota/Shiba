@@ -2,7 +2,6 @@ import argparse
 import os
 import sys
 import logging
-import yaml
 import subprocess
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ Step 7: plots.py
     - Generates plots from results.""",
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument("config", help="Config file in yaml format")
+    parser.add_argument("config.yaml", help="Config file in yaml format")
     parser.add_argument("-p", "--process", type=int, default=1, help="Number of processors to use (default: 1)")
     parser.add_argument("-s", "--start-step", type=int, default=0, help="Start the pipeline from the specified step (default: 0, run all steps)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
@@ -51,6 +50,9 @@ def main():
         format = "[%(asctime)s] %(levelname)7s %(message)s",
         level = logging.DEBUG if args.verbose else logging.INFO
     )
+
+    # Load required modules
+    import yaml
 
     # Validate input and config
     logger.info("Running Shiba...")

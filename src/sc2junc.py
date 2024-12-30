@@ -5,7 +5,6 @@ import logging
 import sys
 import os
 import pandas as pd
-import scanpy as sc
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -132,6 +131,9 @@ def main():
 	)
 	logger.info("Starting junction read count calculation")
 	logger.debug(args)
+
+	# Import required packages
+	import scanpy as sc
 
 	# Parse arguments
 	experiment_table = args.experiment

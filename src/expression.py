@@ -3,13 +3,11 @@ import os
 import sys
 import subprocess
 import logging
-import pysam
 import pandas as pd
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.append(parent_dir)
 from lib import expression, general
-from styleframe import StyleFrame, Styler, utils
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -100,6 +98,9 @@ def main():
 	)
 	logger.info("Starting RNA expression analysis...")
 	logger.debug(args)
+
+	# Import StyleFrame
+	from styleframe import StyleFrame, Styler, utils
 
 	# Prepare output directory
 	prepare_output_dir(args.output)

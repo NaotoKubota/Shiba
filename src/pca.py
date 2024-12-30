@@ -2,9 +2,6 @@ import argparse
 import os
 import sys
 import pandas as pd
-import scipy.stats as stats
-from sklearn.decomposition import PCA
-from sklearn.impute import KNNImputer
 import logging
 
 # Configure logging
@@ -119,6 +116,11 @@ def main():
     )
     logger.info("Starting PCA analysis...")
     logger.debug(args)
+
+    # Import required packages
+    import scipy.stats as stats
+    from sklearn.decomposition import PCA
+    from sklearn.impute import KNNImputer
 
     # Load input files
     logger.info("Loading input files...")
