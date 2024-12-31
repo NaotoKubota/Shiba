@@ -1,7 +1,7 @@
 # Shiba usage
 
 ``` bash
-usage: shiba.py [-h] [-p PROCESS] [-s START_STEP] [-v] config.yaml
+usage: shiba.py [-h] [-p PROCESS] [-s START_STEP] [-v] config
 
 Shiba v0.4.1 - Pipeline for identification of differential RNA splicing
 
@@ -21,9 +21,9 @@ Step 7: plots.py
     - Generates plots from results.
 
 positional arguments:
-  config.yaml           Config file in yaml format
+  config                Config file in yaml format
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -p PROCESS, --process PROCESS
                         Number of processors to use (default: 1)
@@ -32,7 +32,7 @@ optional arguments:
   -v, --verbose         Verbose mode
 ```
 
-Check the [Manual](../manual/diff_splicing_bulk.md/#1-prepare-inputs) to learn how to prepare the `config.yaml`.
+Check the [Manual](../manual/diff_splicing_bulk.md/#1-prepare-inputs) to learn how to prepare the `config`.
 
 The `Shiba` command will run the following steps sequentially:
 

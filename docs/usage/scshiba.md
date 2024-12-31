@@ -1,7 +1,7 @@
 # scShiba usage
 
 ``` bash
-usage: scshiba.py [-h] [-p PROCESS] [-s START_STEP] [-v] config.yaml
+usage: scshiba.py [-h] [-p PROCESS] [-s START_STEP] [-v] config
 
 scShiba v0.4.1 - Pipeline for identification of differential RNA splicing in single-cell RNA-seq data
 
@@ -13,9 +13,9 @@ Step 3: scpsi.py
     - Calculates PSI values and perform differential analysis.
 
 positional arguments:
-  config.yaml           Config file in yaml format
+  config                Config file in yaml format
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -p PROCESS, --process PROCESS
                         Number of processors to use (default: 1)
