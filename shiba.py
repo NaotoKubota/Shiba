@@ -28,7 +28,7 @@ Step 7: plots.py
     - Generates plots from results.""",
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument("config.yaml", help="Config file in yaml format")
+    parser.add_argument("config", help="Config file in yaml format")
     parser.add_argument("-p", "--process", type=int, default=1, help="Number of processors to use (default: 1)")
     parser.add_argument("-s", "--start-step", type=int, default=0, help="Start the pipeline from the specified step (default: 0, run all steps)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
@@ -160,9 +160,9 @@ def main():
                 "-g", gtf,
                 "-o", os.path.join(output_dir, "results", "expression"),
                 "" if config['only_psi'] or config['only_psi_group'] else "-r",
-                "" if not config['only_psi'] or config['only_psi_group'] else config['reference_group'],
-                "" if not config['only_psi'] or config['only_psi_group'] else "-a",
-                "" if not config['only_psi'] or config['only_psi_group'] else config['alternative_group'],
+                "" if config['only_psi'] or config['only_psi_group'] else config['reference_group'],
+                "" if config['only_psi'] or config['only_psi_group'] else "-a",
+                "" if config['only_psi'] or config['only_psi_group'] else config['alternative_group'],
                 "-p", processors
             ]
         },
