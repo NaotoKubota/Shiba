@@ -50,16 +50,6 @@ RUN /usr/local/bin/python -m pip install --upgrade pip && \
 	pysam==0.21.0 scanpy==1.9.5 \
 	numpy==1.26.4 PyYAML==6.0.2
 
-# Install Samtools (version 1.16.1)
-RUN cd /opt_shiba && \
-	wget https://github.com/samtools/samtools/releases/download/1.16.1/samtools-1.16.1.tar.bz2 && \
-	tar jxf samtools-1.16.1.tar.bz2 && \
-	rm -rf samtools-1.16.1.tar.bz2 && \
-	cd samtools-1.16.1/ && \
-	./configure --prefix=/where/to/install && \
-	make && \
-	make install
-
 # Install Subread (version 2.0.3)
 RUN cd /opt_shiba && \
 	wget https://sourceforge.net/projects/subread/files/subread-2.0.3/subread-2.0.3-Linux-x86_64.tar.gz && \
@@ -90,7 +80,7 @@ RUN cd /opt_shiba && \
 	git clone https://github.com/NaotoKubota/Shiba.git -b develop
 
 # Set environment variables
-ENV PATH $PATH:/opt_shiba/samtools-1.16.1:/opt_shiba/subread-2.0.3-Linux-x86_64/bin:/opt_shiba/stringtie-2.2.1:/opt_shiba/regtools-1.0.0/build:/opt_shiba/Shiba
+ENV PATH $PATH:/opt_shiba/subread-2.0.3-Linux-x86_64/bin:/opt_shiba/stringtie-2.2.1:/opt_shiba/regtools-1.0.0/build:/opt_shiba/Shiba
 
 # Set working directory
 WORKDIR /home
