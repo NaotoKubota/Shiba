@@ -3,6 +3,8 @@ import os
 import sys
 import logging
 import subprocess
+import yaml
+from lib import general
 # Configure logger
 logger = logging.getLogger(__name__)
 # Set version
@@ -31,20 +33,11 @@ def main():
 	# Get arguments
 	args = parse_args()
 
-	# Add parent directory to path
-	current_dir = os.path.dirname(os.path.abspath(__file__))
-	parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-	sys.path.append(parent_dir)
-	from lib import general
-
 	# Set up logging
 	logging.basicConfig(
 		format = "[%(asctime)s] %(levelname)7s %(message)s",
 		level = logging.DEBUG if args.verbose else logging.INFO
 	)
-
-	# Load required modules
-	import yaml
 
 	# Validate input and config
 	logger.info("Running scShiba...")
