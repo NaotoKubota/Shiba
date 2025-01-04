@@ -5,7 +5,7 @@ VERSION = "v0.4.0"
 SnakeScShiba: A snakemake-based workflow of scShiba
 
 Usage:
-    snakemake -s SnakeScShiba --configfile config.yaml --cores <int> --use-singularity --singularity-args "--bind $HOME:$HOME"
+    snakemake -s snakescshiba.smk --configfile config.yaml --cores <int> --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
 workdir: config["workdir"]
