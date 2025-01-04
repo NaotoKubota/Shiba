@@ -1,7 +1,7 @@
 # SnakeScShiba Usage
 
 ``` bash
-snakemake -s SnakeScShiba \
+snakemake -s snakescshiba.smk \
 --configfile config.yaml \
 --cores 32 \
 --use-singularity \

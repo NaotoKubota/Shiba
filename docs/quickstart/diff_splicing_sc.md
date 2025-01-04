@@ -149,7 +149,7 @@ You can generate a file of splicing analysis results in excel format by setting 
 Please make sure that you have installed Snakemake and Singularity and cloned the Shiba repository on your system.
 
 ``` bash
-snakemake -s /path/to/Shiba/SnakeScShiba \
+snakemake -s /path/to/Shiba/snakescshiba.smk \
 --configfile config.yaml \
 --cores 16 \
 --use-singularity \
