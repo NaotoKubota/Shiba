@@ -156,6 +156,7 @@ def main():
                 "" if config['only_psi'] or config['only_psi_group'] else config['reference_group'],
                 "" if config['only_psi'] or config['only_psi_group'] else "-a",
                 "" if config['only_psi'] or config['only_psi_group'] else config['alternative_group'],
+                "--excel" if config['excel'] else "",
                 "-p", processors
             ]
         },

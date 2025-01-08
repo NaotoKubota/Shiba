@@ -22,6 +22,7 @@ def parse_args():
 	parser.add_argument("-r", "--refgroup", default="NA", help="Reference group for differential expression analysis")
 	parser.add_argument("-a", "--altgroup", default="NA", help="Alternative group for differential expression analysis")
 	parser.add_argument("-p", "--processors", type=int, default=1, help="Number of processors to use (default: 1)")
+	parser.add_argument("--excel", help = "Make result files in excel format", action = 'store_true')
 	parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
 	return parser.parse_args()
 
@@ -125,22 +126,23 @@ def main():
 	cpm_df.to_csv(f"{args.output}/CPM.txt", sep = "\t", index = False)
 
 	# Export to Excel
-	logger.info("Exporting results to Excel...")
-	# StyleFrame
-	style = Styler(
-		horizontal_alignment = utils.horizontal_alignments.left,
-		border_type = utils.borders.default_grid,
-		wrap_text = False
-	)
-	with StyleFrame.ExcelWriter(f"{args.output}/TPM_CPM.xlsx") as writer:
-		tpm_sf = StyleFrame(tpm_df)
-		tpm_sf.set_column_width(columns = tpm_df.columns, width = 20)
-		tpm_sf.apply_column_style(cols_to_style = tpm_df.columns, styler_obj = style, style_header = True)
-		tpm_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "TPM")
-		cpm_sf = StyleFrame(cpm_df)
-		cpm_sf.set_column_width(columns = cpm_df.columns, width = 20)
-		cpm_sf.apply_column_style(cols_to_style = cpm_df.columns, styler_obj = style, style_header = True)
-		cpm_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "CPM")
+	if args.excel:
+		logger.info("Exporting results to Excel...")
+		# StyleFrame
+		style = Styler(
+			horizontal_alignment = utils.horizontal_alignments.left,
+			border_type = utils.borders.default_grid,
+			wrap_text = False
+		)
+		with StyleFrame.ExcelWriter(f"{args.output}/TPM_CPM.xlsx") as writer:
+			tpm_sf = StyleFrame(tpm_df)
+			tpm_sf.set_column_width(columns = tpm_df.columns, width = 20)
+			tpm_sf.apply_column_style(cols_to_style = tpm_df.columns, styler_obj = style, style_header = True)
+			tpm_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "TPM")
+			cpm_sf = StyleFrame(cpm_df)
+			cpm_sf.set_column_width(columns = cpm_df.columns, width = 20)
+			cpm_sf.apply_column_style(cols_to_style = cpm_df.columns, styler_obj = style, style_header = True)
+			cpm_sf.to_excel(writer, index = False, columns_and_rows_to_freeze = "B2", sheet_name = "CPM")
 
 	# Run DESeq2 for differential expression analysis
 	run_deseq2(os.path.dirname(__file__), args.input, f"{args.output}/counts.txt", args.refgroup, args.altgroup, args.output)
