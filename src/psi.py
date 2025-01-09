@@ -5,6 +5,7 @@ import logging
 import sys
 import os
 import pandas as pd
+from lib import shibalib
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -40,12 +41,6 @@ def get_args():
 def main():
     ## Main
     args = get_args()
-
-    # Add parent directory to path
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-    sys.path.append(parent_dir)
-    from lib import shibalib
 
     # Set up logging
     logging.basicConfig(

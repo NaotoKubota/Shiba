@@ -1,9 +1,6 @@
 import argparse
 import sys
 import os
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-sys.path.append(parent_dir)
 from lib import expression
 import pandas as pd
 from styleframe import StyleFrame, Styler, utils
@@ -69,6 +66,7 @@ def merge_table(countfiles):
 def main():
 	## Main
 	args = get_args()
+
 	# Set up logging
 	logging.basicConfig(
 		format = "[%(asctime)s] %(levelname)7s %(message)s",
