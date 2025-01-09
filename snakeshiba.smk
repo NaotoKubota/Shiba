@@ -19,7 +19,7 @@ def load_experiment(file):
         for line in f:
             sample, bam, group = line.strip().split("\t")
             if sample == "sample":
-                contiånue
+                continue
             experiment_dict[sample] = {"bam": bam, "group": group}
     return experiment_dict
 experiment_dict = load_experiment(config["experiment_table"])
