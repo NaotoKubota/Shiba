@@ -7,10 +7,12 @@ All notable changes to this Shiba project will be documented in this file.
 ### Added
 
 - Add `shiba.py` and `scshiba.py` as main scripts for Shiba and scShiba, respectively, and remove `Shiba` and `scShiba` to improve the usability of the software.
+- Replace bash scripts to Python scripts for better compatibility and maintainability.
 
 ### Changed
 
 - Optimize the code for better performance and readability.
+- Rename snakefiles to `snakeshiba.smk` and `snakescshiba.smk` for Shiba and scShiba, respectively.
 
 ### Fixed
 
