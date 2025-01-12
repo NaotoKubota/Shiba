@@ -12,7 +12,7 @@ All notable changes to this Shiba project will be documented in this file.
 ### Changed
 
 - Optimize the code for better performance and readability.
-- Rename snakefiles to `snakeshiba.smk` and `snakescshiba.smk` for Shiba and scShiba, respectively.
+- Rename snakefiles to `snakeshiba.smk` and `snakescshiba.smk` for SnakeShiba and SnakeScShiba, respectively.
 
 ### Fixed
 
