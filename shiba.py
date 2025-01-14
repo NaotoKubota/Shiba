@@ -4,7 +4,7 @@ import sys
 import logging
 import subprocess
 import yaml
-from lib import general
+from src.lib import general
 # Configure logger
 logger = logging.getLogger(__name__)
 # Set version
@@ -72,9 +72,6 @@ def main():
     output_dir = config["workdir"]
     logger.debug("Making output directory...")
     os.makedirs(output_dir, exist_ok=True)
-    log_file = os.path.join(output_dir, "Shiba.log")
-    logger.debug(f"Log file: {log_file}")
-    logging.FileHandler(log_file)
 
     # Get parent directory of this script
     logger.debug("Getting script directory...")
