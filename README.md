@@ -6,9 +6,9 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
 [![Docker Image Size](https://img.shields.io/docker/image-size/naotokubota/shiba)](https://hub.docker.com/r/naotokubota/shiba)
 
-# Shiba (v0.4.0) <img src="img/Shiba_icon.png" width=40% align="right">
+# Shiba (v0.4.1) <img src="img/Shiba_icon.png" width=40% align="right">
 
-A unified computational method for robust identification of differential RNA splicing. Shiba/scShiba can quantify and identify differential splicing events (DSEs) from short-read bulk RNA-seq data and single-cell RNA-seq data. Shiba and scShiba are also implemented as [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflows, SnakeShiba and SnakeScShiba, respectively.
+A versatile computational method for robust identification of differential RNA splicing. Shiba/scShiba can quantify and identify differential splicing events (DSEs) from short-read bulk RNA-seq data and single-cell RNA-seq data. Shiba and scShiba are also implemented as [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflows, SnakeShiba and SnakeScShiba, respectively.
 
 See [CHANGELOG.md](https://github.com/NaotoKubota/Shiba/blob/main/CHANGELOG.md) for the latest updates.
 
@@ -35,28 +35,28 @@ docker pull naotokubota/shiba
 ***Shiba***
 
 ```bash
-Shiba -i experiment.tsv -c config.txt
+python shiba.py -p 32 config.yaml
 ```
 
 ***SnakeShiba***, Snakemake-based workflow of Shiba
 
 ```bash
-snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity
+snakemake -s snakeshiba.smk --configfile config.yaml --cores 32 --use-singularity
 ```
 
 ***scShiba***, a single-cell RNA-seq version of Shiba
 
 ```bash
-scShiba -i experiment.tsv -c config.txt
+python scshiba.py -p 32 config.yaml
 ```
 
 ***SnakeScShiba***, Snakemake-based workflow of scShiba
 
 ```bash
-snakemake -s SnakeScShiba --configfile config.yaml --cores 32 --use-singularity
+snakemake -s snakescshiba.smk --configfile config.yaml --cores 32 --use-singularity
 ```
 
-See [the manual document](https://github.com/NaotoKubota/Shiba/blob/main/doc/MANUAL.md) for details.
+See [the manual document](https://naotokubota.github.io/Shiba/) for details.
 
 ## Citation
 

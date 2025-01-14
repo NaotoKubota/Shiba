@@ -2,6 +2,30 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.5.0] - 2025-??-??
+
+### Added
+
+- Add `shiba.py` and `scshiba.py` as main scripts for Shiba and scShiba, respectively, and remove `Shiba` and `scShiba` to improve the usability of the software.
+- Replace bash scripts to Python scripts for better compatibility and maintainability.
+
+### Changed
+
+- Optimize the code for better performance and readability.
+- Rename snakefiles to `snakeshiba.smk` and `snakescshiba.smk` for SnakeShiba and SnakeScShiba, respectively.
+
+### Fixed
+
+## [v0.4.1] - 2024-10-16
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix a bug in MSE detection when the number of MSEs is zero.
+
 ## [v0.4.0] - 2024-07-30
 
 ### Added

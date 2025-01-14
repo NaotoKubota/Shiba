@@ -5,7 +5,7 @@ VERSION = "v0.4.0"
 SnakeShiba: A snakemake-based workflow of Shiba for differential RNA splicing analysis between two groups of samples
 
 Usage:
-    snakemake -s SnakeShiba --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
+    snakemake -s snakeshiba.smk --configfile config.yaml --cores 32 --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
 import os
@@ -131,7 +131,9 @@ rule gtf2event:
         -i {input.assembled_gtf} \
         -r {input.gtf} \
         -o {output.events} \
-        -p {threads} >& {log}
+        -p {threads} \
+        -v \
+        >& {log}
         """
 
 rule bam2junc:
@@ -196,6 +198,7 @@ rule bam2junc_RI:
         -r {input.RI} \
         -o {output.junc} \
         -t {threads} \
+        -v \
         &> {log}
         """
 
@@ -216,7 +219,9 @@ rule merge_junc:
         python {params.base_dir}/src/merge_junc_snakemake.py \
         --exonexon {input.exonexon} \
         --exonintron {input.exonintron} \
-        --output {output} >& {log}
+        --output {output} \
+        -v \
+        >& {log}
         """
 
 rule psi:
@@ -247,9 +252,10 @@ rule psi:
         -a {config[alternative_group]} \
         -i {config[individual_psi]} \
         -t {config[ttest]} \
-        --onlypsi {config[only_psi]} \
-        --onlypsi-group {config[only_psi_group]} \
+        --onlypsi False \
+        --onlypsi-group False \
         --excel {config[excel]} \
+        -v \
         {input.junc} \
         events \
         {output.results} >& {log}
@@ -278,6 +284,7 @@ rule expression_featureCounts:
         -g {config[gtf]} \
         -o {output.counts} \
         -t {threads} \
+        -v \
         &> {log}
         """
 
@@ -299,6 +306,7 @@ rule expression_tpm:
         python {params.base_dir}/src/tpm_snakemake.py \
         --countfiles {input.counts} \
         --output results/expression/ \
+        -v \
         &> {log}
         """
 
@@ -321,6 +329,7 @@ rule deseq2:
         --reference {config[reference_group]} \
         --alternative {config[alternative_group]} \
         --output {output.deseq2} \
+        -v \
         &> {log}
         """
 
@@ -336,7 +345,7 @@ rule pca:
     benchmark:
         "benchmark/pca/pca.txt"
     log:
-        "log/pca/pca.log"
+        "log/pca.log"
     params:
         base_dir = base_dir
     shell:
@@ -346,6 +355,7 @@ rule pca:
         --input-psi {input.PSI_matrix_sample} \
         -g 3000 \
         -o results/pca \
+        -v \
         &> {log}
         """
 
@@ -371,5 +381,7 @@ rule plots:
         -i results \
         -e {config[experiment_table]} \
         -s "{params.command}" \
-        -o plots >& {log}
+        -o plots \
+        -v \
+        >& {log}
         """

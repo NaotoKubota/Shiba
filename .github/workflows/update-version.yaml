@@ -2,6 +2,8 @@ name: Update Version
 
 on:
   push:
+    branches:
+      - develop
     paths:
       - 'VERSION'
 
@@ -12,6 +14,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Check for merge commit
+        id: check_merge
+        run: |
+          if [ "$(git rev-list --count HEAD^@)" -gt 1 ]; then
+            echo "This is a merge commit. Skipping workflow."
+            exit 0
+          fi
 
       - name: Read version from VERSION file
         id: read_version
@@ -34,22 +44,22 @@ jobs:
       - name: Update Shiba with new version
         run: |
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
-          sed -i "s/VERSION=\"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION=\"${NEW_VERSION}\"/" Shiba
+          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" shiba.py
 
       - name: Update scShiba with new version
         run: |
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
-          sed -i "s/VERSION=\"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION=\"${NEW_VERSION}\"/" scShiba
+          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" scshiba.py
 
       - name: Update SnakeShiba with new version
         run: |
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
-          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" SnakeShiba
+          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" snakeshiba.smk
 
       - name: Update SnakeScShiba with new version
         run: |
           NEW_VERSION=${{ steps.read_version.outputs.NEW_VERSION }}
-          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" SnakeScShiba
+          sed -i "s/VERSION = \"v[0-9]*\.[0-9]*\.[0-9]*\"/VERSION = \"${NEW_VERSION}\"/" snakescshiba.smk
 
       - name: Update Dockerfile with new version
         run: |
@@ -60,6 +70,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add README.md Shiba scShiba docker/Dockerfile
+          git add README.md shiba.py scshiba.py snakeshiba.smk snakescshiba.smk docker/Dockerfile
           git commit -m "actions: Ready for ${{ steps.read_version.outputs.NEW_VERSION }}"
           git push origin HEAD:${{ steps.get_branch.outputs.BRANCH_NAME }}

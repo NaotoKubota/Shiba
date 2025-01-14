@@ -1,4 +1,11 @@
 lib/__pycache__
 test/*.ipynb
 test/.ipynb_checkpoints
-.DS_Store
+test/*.bash
+test/__pycache__
+test/logs
+test/*.out
+test/*.yaml
+test/*.tsv
+test/*.snakemake
+__pycache__
