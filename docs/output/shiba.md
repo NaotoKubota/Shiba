@@ -253,32 +253,31 @@ output
 │   │   ├── volcano_SE.html
 │   │   └── volcano_THREE.html
 │   └── summary.html
-├── results
-│   ├── expression
-│   │   ├── counts.txt
-│   │   ├── CPM.txt
-│   │   ├── DEG.txt
-│   │   ├── logs
-│   │   │   ├── DESeq2.log
-│   │   │   └── featureCounts.log
-│   │   ├── TPM_CPM.xlsx
-│   │   └── TPM.txt
-│   ├── pca
-│   │   ├── psi_contribution.tsv
-│   │   ├── psi_pca.tsv
-│   │   ├── tpm_contribution.tsv
-│   │   └── tpm_pca.tsv
-│   └── splicing
-│       ├── PSI_AFE.txt
-│       ├── PSI_ALE.txt
-│       ├── PSI_FIVE.txt
-│       ├── PSI_matrix_group.txt
-│       ├── PSI_matrix_sample.txt
-│       ├── PSI_MSE.txt
-│       ├── PSI_MXE.txt
-│       ├── PSI_RI.txt
-│       ├── PSI_SE.txt
-│       ├── PSI_THREE.txt
-│       └── summary.txt
-└── Shiba.log
+└── results
+    ├── expression
+    │   ├── counts.txt
+    │   ├── CPM.txt
+    │   ├── DEG.txt
+    │   ├── logs
+    │   │   ├── DESeq2.log
+    │   │   └── featureCounts.log
+    │   ├── TPM_CPM.xlsx
+    │   └── TPM.txt
+    ├── pca
+    │   ├── psi_contribution.tsv
+    │   ├── psi_pca.tsv
+    │   ├── tpm_contribution.tsv
+    │   └── tpm_pca.tsv
+    └── splicing
+        ├── PSI_AFE.txt
+        ├── PSI_ALE.txt
+        ├── PSI_FIVE.txt
+        ├── PSI_matrix_group.txt
+        ├── PSI_matrix_sample.txt
+        ├── PSI_MSE.txt
+        ├── PSI_MXE.txt
+        ├── PSI_RI.txt
+        ├── PSI_SE.txt
+        ├── PSI_THREE.txt
+        └── summary.txt
 ```
