@@ -15,6 +15,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Check for merge commit
+        id: check_merge
+        run: |
+          if [ "$(git rev-list --count HEAD^@)" -gt 1 ]; then
+            echo "This is a merge commit. Skipping workflow."
+            exit 0
+          fi
+
       - name: Read version from VERSION file
         id: read_version
         run: |
