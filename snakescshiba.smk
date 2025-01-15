@@ -1,11 +1,11 @@
 
-VERSION = "v0.4.0"
+VERSION = "v0.5.0"
 
 '''
 SnakeScShiba: A snakemake-based workflow of scShiba
 
 Usage:
-    snakemake -s SnakeScShiba --configfile config.yaml --cores <int> --use-singularity --singularity-args "--bind $HOME:$HOME"
+    snakemake -s snakescshiba.smk --configfile config.yaml --cores <int> --use-singularity --singularity-args "--bind $HOME:$HOME"
 '''
 
 workdir: config["workdir"]
@@ -14,7 +14,7 @@ base_dir = os.path.dirname(workflow.snakefile)
 
 rule all:
     input:
-        event_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]),
+        event_all = expand("events/EVENT_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"]),
         PSI = expand("results/PSI_{sample}.txt", sample = ["SE", "FIVE", "THREE", "MXE", "MSE", "AFE", "ALE"])
     params:
         version = VERSION
@@ -49,7 +49,9 @@ rule gtf2event:
         python {params.base_dir}/src/gtf2event.py \
         -i {input.gtf} \
         -o {output.events} \
-        -p {threads} >& {log}
+        -p {threads} \
+        -v \
+        >& {log}
         """
 
 rule sc2junc:
@@ -67,7 +69,9 @@ rule sc2junc:
         """
         python {params.base_dir}/src/sc2junc.py \
         -i {input} \
-        -o {output} >& {log}
+        -o {output} \
+        -v \
+        >& {log}
         """
 
 rule scpsi:
@@ -96,6 +100,7 @@ rule scpsi:
         -a {config[alternative_group]} \
         --onlypsi {config[only_psi]} \
         --excel {config[excel]} \
+        -v \
         {input.junc} \
         events \
         {output.results} >& {log}

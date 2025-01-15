@@ -7,6 +7,10 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import html
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 def get_args():
 
@@ -14,82 +18,66 @@ def get_args():
 		formatter_class = argparse.ArgumentDefaultsHelpFormatter,
 		description = "Make plots for alternative splicing events"
 	)
-
 	parser.add_argument("-i", "--input", type = str, help = "Directory that contains result files")
 	parser.add_argument("-e", "--experiment-table", type = str, help = "Experiment table file")
 	parser.add_argument("-s", "--shiba-command", type = str, help = "Shiba command")
 	parser.add_argument("-o", "--output", type = str, help = "Directory for output files")
-
+	parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
 	args = parser.parse_args()
-
 	return(args)
 
 def load_experiment_table(experiment_table: str):
 
 	# Load experiment table
 	experiment_table_df = pd.read_csv(
-
 		experiment_table,
 		sep = "\t",
 		usecols = ["sample", "group"]
-
 	)
-
 	# Add a column of number for each group, starting from the first group to the last group
 	group_order = experiment_table_df["group"].unique().tolist()
 	group_order_dict = {group: i for i, group in enumerate(group_order)}
 	experiment_table_df["group_order"] = experiment_table_df["group"].map(group_order_dict)
-
 	return experiment_table_df
 
 def load_tpm_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output_dir: str):
 
 	# Load PCA matrix for TPM
 	pca_tpm_df = pd.read_csv(
-
-		input_dir + "/pca/tpm_pca.tsv",
+		os.path.join(input_dir, "pca", "tpm_pca.tsv"),
 		sep = "\t"
-
 	)
 	pca_tpm_df = pca_tpm_df.rename(columns = {"Unnamed: 0": "sample"})
 	pca_tpm_df = pd.merge(pca_tpm_df, experiment_table_df, on = "sample")
 	pca_tpm_df = pca_tpm_df.sort_values("group_order")
 	# Load contribution table for TPM
 	contribution_tpm_df = pd.read_csv(
-
-		input_dir + "/pca/tpm_contribution.tsv",
+		os.path.join(input_dir, "pca", "tpm_contribution.tsv"),
 		sep = "\t",
 		names = ["PC", "contribution"]
-
 	)
 	contribution_tpm_PC1 = str((contribution_tpm_df.iloc[0][1]*100).round(2))
 	contribution_tpm_PC2 = str((contribution_tpm_df.iloc[1][1]*100).round(2))
-
 	return pca_tpm_df, contribution_tpm_PC1, contribution_tpm_PC2
 
 def load_psi_pca_table(input_dir: str, experiment_table_df: pd.DataFrame, output_dir: str):
 
 	# Load PCA matrix for PSI
 	pca_psi_df = pd.read_csv(
-
-		input_dir + "/pca/psi_pca.tsv",
+		os.path.join(input_dir, "pca", "psi_pca.tsv"),
 		sep = "\t"
-
 	)
 	pca_psi_df = pca_psi_df.rename(columns = {"Unnamed: 0": "sample"})
 	pca_psi_df = pd.merge(pca_psi_df, experiment_table_df, on = "sample")
 	pca_psi_df = pca_psi_df.sort_values("group_order")
 	# Load contribution table for PSI
 	contribution_psi_df = pd.read_csv(
-
-		input_dir + "/pca/psi_contribution.tsv",
+		os.path.join(input_dir, "pca", "psi_contribution.tsv"),
 		sep = "\t",
 		names = ["PC", "contribution"]
-
 	)
 	contribution_psi_PC1 = str((contribution_psi_df.iloc[0][1]*100).round(2))
 	contribution_psi_PC2 = str((contribution_psi_df.iloc[1][1]*100).round(2))
-
 	return pca_psi_df, contribution_psi_PC1, contribution_psi_PC2
 
 def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contribution_PC2: str, output_dir: str):
@@ -97,16 +85,13 @@ def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contributi
 	# Round PC1 and PC2
 	pca_df["PC1"] = pca_df["PC1"].round(2)
 	pca_df["PC2"] = pca_df["PC2"].round(2)
-
 	# Color palette
 	number_of_groups = pca_df["group"].nunique()
 	if number_of_groups <= 8:
 		color_palette = px.colors.qualitative.G10
 	else:
 		color_palette = px.colors.sequential.Viridis
-
 	fig = px.scatter(
-
 		pca_df,
 		x = "PC1",
 		y = "PC2",
@@ -114,16 +99,13 @@ def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contributi
 		color_discrete_sequence = color_palette,
 		opacity = 0.5,
 		hover_data = ["sample"]
-
 	)
-
 	fig.update_traces(
 		marker = dict(
 			size = 16,
 			line = dict(width = 1, color = 'Black')),
 			selector = dict(mode = 'markers')
 	)
-
 	fig.update_layout(
 		title = dict(
 			text = "PCA for " + name,
@@ -134,7 +116,6 @@ def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contributi
 			xanchor = 'center',
 		)
 	)
-
 	fig.update_layout(
 		width = 550,
 		height = 400,
@@ -146,37 +127,28 @@ def plots_pca(name: str, pca_df: pd.DataFrame, contribution_PC1: str, contributi
 		yaxis_title = "PC2 ({}%)".format(contribution_PC2),
 		legend_title = "Group",
 	)
-
-	fig.write_html(output_dir + "/data/pca_" + name + ".html", include_plotlyjs = "cdn")
+	fig.write_html(os.path.join(output_dir, "data", "pca_" + name + ".html"), include_plotlyjs = "cdn")
 
 def plots(AS: str, input_dir: str, output_dir: str):
 
 	# load data
 	df = pd.read_csv(
-
-		input_dir + "/splicing/PSI_" + AS + ".txt",
+		os.path.join(input_dir, "splicing", "PSI_" + AS + ".txt"),
 		sep = "\t"
-
 	)
-
 	if not df.empty:
-
 		# Round dPSI and others
 		df["dPSI"] = df["dPSI"].round(2)
 		df['-log10(q)'] = -np.log10(df["q"])
 		df['-log10(q)'] = df['-log10(q)'].round(2)
 		df["ref_PSI"] = df["ref_PSI"].round(2)
 		df["alt_PSI"] = df["alt_PSI"].round(2)
-
 	# Volcano plot
 	if not df.empty:
-
 		df.loc[(df["Diff events"] == "Yes") & (df["dPSI"] > 0.1), "group"] = "up"
 		df.loc[(df["Diff events"] == "Yes") & (df["dPSI"] < -0.1), "group"] = "down"
 		df = df.fillna({"group": "others"})
-
 		fig = px.scatter(
-
 			df,
 			x = "dPSI",
 			y = "-log10(q)",
@@ -186,16 +158,13 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			category_orders = {"group": ["up", "down", "others"], "label": ["annotated", "unannotated"]},
 			color_discrete_sequence = ["salmon", "steelblue", "lightgrey"],
 			hover_data = ["gene_name", "event_id", "ref_PSI", "alt_PSI", "q"]
-
 		)
-
 		fig.update_traces(
 			marker = dict(
 				size = 8,
 				line = dict(width = 0, color = 'DarkSlateGrey')),
 				selector = dict(mode = 'markers')
 		)
-
 		fig.update_layout(
 			title = dict(
 				text = "Volcano plot",
@@ -206,24 +175,17 @@ def plots(AS: str, input_dir: str, output_dir: str):
 				xanchor = 'center'
 			)
 		)
-
 	else:
-
 		# If there is no data, make empty plot
 		fig = px.scatter(
-
 			x = [None],
 			y = [None]
-
 		)
-
 		# Remove xlabel and ylabel
 		fig.update_xaxes(title = None)
 		fig.update_yaxes(title = None)
-
 		# Add "No data" text to the empty plot
 		fig.add_annotation(
-
 			text = "No data",
 			xref = "paper",
 			yref = "paper",
@@ -231,9 +193,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			y = 0.5,
 			showarrow = False,
 			font = dict(size = 26, color = 'black')
-
 		)
-
 	fig.update_layout(
 		width = 550,
 		height = 400,
@@ -243,14 +203,11 @@ def plots(AS: str, input_dir: str, output_dir: str):
 		},
 		legend_title = "Group, Label",
 	)
-
-	fig.write_html(output_dir + "/data/volcano_" + AS + ".html", include_plotlyjs = "cdn")
+	fig.write_html(os.path.join(output_dir, "data", "volcano_" + AS + ".html"), include_plotlyjs = "cdn")
 
 	# Scatter
 	if not df.empty:
-
 		fig = px.scatter(
-
 			df,
 			x = "ref_PSI",
 			y = "alt_PSI",
@@ -260,15 +217,12 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			category_orders = {"group": ["up", "down", "others"], "label": ["annotated", "unannotated"]},
 			color_discrete_sequence = ["salmon", "steelblue", "lightgrey"],
 			hover_data = ["gene_name", "event_id", "dPSI", "q"]
-
 		)
-
 		fig.update_traces(
 			marker = dict(size=8,
 							line=dict(width=0, color='DarkSlateGrey')),
 							selector=dict(mode='markers')
 		)
-
 		fig.update_layout(title=dict(text = "Scatter plot",
 										font=dict(size=26,
 												color='black'),
@@ -278,24 +232,17 @@ def plots(AS: str, input_dir: str, output_dir: str):
 										xanchor='center'
 									)
 							)
-
 	else:
-
 		# If there is no data, make empty plot
 		fig = px.scatter(
-
 			x = [None],
 			y = [None]
-
 		)
-
 		# Remove xlabel and ylabel
 		fig.update_xaxes(title = None)
 		fig.update_yaxes(title = None)
-
 		# Add "No data" text to the empty plot
 		fig.add_annotation(
-
 			text = "No data",
 			xref = "paper",
 			yref = "paper",
@@ -303,9 +250,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			y = 0.5,
 			showarrow = False,
 			font = dict(size = 26, color = 'black')
-
 		)
-
 	fig.update_layout(
 		width = 550,
 		height= 400,
@@ -317,12 +262,10 @@ def plots(AS: str, input_dir: str, output_dir: str):
 		yaxis_title = "PSI (Alternative)",
 		legend_title = "Group, Label",
 	)
-
-	fig.write_html(output_dir + "/data/scatter_" + AS + ".html", include_plotlyjs = "cdn")
+	fig.write_html(os.path.join(output_dir, "data", "scatter_" + AS + ".html"), include_plotlyjs = "cdn")
 
 	# Bar
 	if not df.empty:
-
 		count_df = df[df["group"] != "others"].groupby(["group", "label"], as_index = False).count()[["group", "label", "event_id"]]
 		fig = px.bar(
 			count_df,
@@ -334,7 +277,6 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			color_discrete_sequence = ["#9ebcda", "#810f7c"],
 			barmode = "relative"
 		)
-
 		fig.update_layout(title=dict(text = "Number of DSEs",
 										font=dict(size=26,
 												color='black'),
@@ -344,24 +286,17 @@ def plots(AS: str, input_dir: str, output_dir: str):
 										xanchor='center'
 									)
 							)
-
 	else:
-
 		# if there is no data, make empty plot
 		fig = px.bar(
-
 			x = [0],
 			y = [0]
-
 		)
-
 		# Remove xlabel and ylabel
 		fig.update_xaxes(title = None)
 		fig.update_yaxes(title = None)
-
 		# Add "No data" text to the empty plot
 		fig.add_annotation(
-
 			text = "No data",
 			xref = "paper",
 			yref = "paper",
@@ -369,9 +304,7 @@ def plots(AS: str, input_dir: str, output_dir: str):
 			y = 0.5,
 			showarrow = False,
 			font = dict(size = 26, color = 'black')
-
 		)
-
 	fig.update_layout(
 		width = 550,
 		height = 400,
@@ -382,37 +315,26 @@ def plots(AS: str, input_dir: str, output_dir: str):
 		xaxis_title = None,
 		legend_title = "Group, Label",
 	)
-
-	fig.write_html(output_dir + "/data/bar_" + AS + ".html", include_plotlyjs = "cdn")
+	fig.write_html(os.path.join(output_dir, "data", "bar_" + AS + ".html"), include_plotlyjs = "cdn")
 
 def write_summary_html(shiba_command: str, output_dir: str):
 
 	# PCA
 	lines_strip_pca_dict = {}
 	for pca in ["TPM", "PSI"]:
-
-		with open(output_dir + "/data/pca_" + pca + ".html", 'r') as f:
-
+		with open(os.path.join(output_dir, "data", "pca_" + pca + ".html"), 'r') as f:
 			lines = f.readlines()
-
 		lines_strip = [html.escape(line.strip()) for line in lines[2:6]]
 		lines_strip_pca_dict[pca] = lines_strip
-
 	# Splicing events
 	events = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]
 	plottypes = ["volcano", "scatter", "bar"]
 	lines_strip_dict = {}
-
 	for event in events:
-
 		lines_strip_dict[event] = {}
-
 		for plottype in plottypes:
-
-			with open(output_dir + "/data/" + plottype + "_" + event + ".html", 'r') as f:
-
+			with open(os.path.join(output_dir, "data", plottype + "_" + event + ".html"), 'r') as f:
 				lines = f.readlines()
-
 			lines_strip = [html.escape(line.strip()) for line in lines[2:6]]
 			lines_strip_dict[event][plottype] = lines_strip
 
@@ -877,39 +799,48 @@ def write_summary_html(shiba_command: str, output_dir: str):
 		bar_ale_l3 = lines_strip_dict["ALE"]["bar"][2],
 		bar_ale_l4 = lines_strip_dict["ALE"]["bar"][3]
 	)
-
-	with open(output_dir + "/summary.html", 'w') as f:
+	with open(os.path.join(output_dir, "summary.html"), 'w') as f:
 		f.write(summary_html)
-
 	return 0
 
 def main():
 
+	# Get arguments
 	args = get_args()
+	# Set up logging
+	logging.basicConfig(
+		format = "[%(asctime)s] %(levelname)7s %(message)s",
+		level = logging.DEBUG if args.verbose else logging.INFO
+	)
+	logger.info("Starting making plots....")
+
+	# Set variables
 	input_dir = args.input
 	output_dir = args.output
 	# Make directory
-	os.makedirs(output_dir + "/data", exist_ok = True)
-
-	print("Making plots....", file = sys.stdout)
-	# PCA
+	os.makedirs(os.path.join(output_dir, "data"), exist_ok=True)
+	# Load experiment table
+	logger.info("Loading experiment table....")
 	experiment_table_df = load_experiment_table(args.experiment_table)
 	# TPM
+	logger.info("Making plots for PCA....")
+	logger.debug("TPM....")
 	pca_tpm_df, contribution_tpm_PC1, contribution_tpm_PC2 = load_tpm_pca_table(input_dir, experiment_table_df, output_dir)
 	plots_pca("TPM", pca_tpm_df, contribution_tpm_PC1, contribution_tpm_PC2, output_dir)
 	# PSI
+	logger.debug("PSI....")
 	pca_psi_df, contribution_psi_PC1, contribution_psi_PC2 = load_psi_pca_table(input_dir, experiment_table_df, output_dir)
 	plots_pca("PSI", pca_psi_df, contribution_psi_PC1, contribution_psi_PC2, output_dir)
-
+	# Splicing events
+	logger.info("Making plots for splicing events....")
 	AS_list = ["SE", "FIVE", "THREE", "MXE", "RI", "MSE", "AFE", "ALE"]
-
 	for AS in AS_list:
-
 		plots(AS, input_dir, output_dir)
-
+	# Write summary html
+	logger.info("Writing summary html....")
 	write_summary_html(args.shiba_command, output_dir)
 
-	print("Plots: " + output_dir + "/summary.html", file = sys.stdout)
+	logger.info("Making plots completed!")
 
 if __name__ == '__main__':
 

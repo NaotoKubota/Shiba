@@ -2,6 +2,26 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.5.0] - 2025-01-15
+
+> [!IMPORTANT]
+> Main scripts were replaced with `shiba.py` and `scshiba.py` for Shiba and scShiba, respectively.
+> The original scripts `Shiba` and `scShiba` were deprecated.
+
+### Added
+
+- Added `shiba.py` and `scshiba.py` as main scripts for Shiba and scShiba, respectively, and removed `Shiba` and `scShiba` to improve the usability of the software.
+- Replaced bash scripts to Python scripts for better compatibility and maintainability.
+
+### Changed
+
+- Renamed snakefiles to `snakeshiba.smk` and `snakescshiba.smk` for SnakeShiba and SnakeScShiba, respectively.
+- Improved logging messages for better readability.
+
+### Fixed
+
+- Optimized the code for better performance and readability.
+
 ## [v0.4.1] - 2024-10-16
 
 ### Added
