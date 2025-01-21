@@ -2,6 +2,15 @@
 
 All notable changes to this Shiba project will be documented in this file.
 
+## [v0.5.1] - 2025-01-21
+
+### Added
+
+- Added author information to README.md
+  - Naoto Kubota ([0000-0003-0612-2300](https://orcid.org/0000-0003-0612-2300))
+  - Liang Chen ([0000-0001-6164-4553](https://orcid.org/0000-0001-6164-4553))
+  - Sika Zheng ([0000-0002-0573-4981](https://orcid.org/0000-0002-0573-4981))
+
 ## [v0.5.0] - 2025-01-15
 
 > [!IMPORTANT]
