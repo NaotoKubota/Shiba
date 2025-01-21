@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'VERSION'
+
+permissions: write-all
 
 jobs:
   update-readme-version:
