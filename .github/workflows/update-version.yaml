@@ -7,6 +7,8 @@ on:
     paths:
       - 'VERSION'
 
+permissions: write-all
+
 jobs:
   update-readme-version:
     runs-on: ubuntu-latest

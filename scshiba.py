@@ -8,7 +8,7 @@ from src.lib import general
 # Configure logger
 logger = logging.getLogger(__name__)
 # Set version
-VERSION = "v0.5.0"
+VERSION = "v0.5.1"
 
 def parse_args():
     parser = argparse.ArgumentParser(
